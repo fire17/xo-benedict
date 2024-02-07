@@ -1,4 +1,5 @@
 import traceback
+import json
 
 from benedict.dicts.base import BaseDict
 from benedict.dicts.io import io_util
@@ -89,6 +90,27 @@ class IODict(BaseDict):
         """
         kwargs["columns"] = columns
         kwargs["columns_row"] = columns_row
+        print("kwargs", kwargs)
+        try:
+            # sLines = s.replace("\\'","{\\'}").replace("'",'"').replace('{\\"}',"\\'").replace("\r\n", "\n").split("\n")
+            sLines = s.replace("\r\n", "\n").split("\n")
+            final = {}
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSs")
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSs")
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSs")
+            print("\n".join(sLines))
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSs")
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSs")
+            for line in sLines:
+                if "," in line:
+                    key, value = line.split(",")[0], ",".join(line.split(",")[1:])
+                    print("XXXXXXXXXXXX",key,value)
+                    final[key] = json.loads(value) 
+            return cls(final, **kwargs)
+        except Exception as e:
+            # raise ValueError(f"Invalid JSON data: {s}") from e
+            print(f"Invalid JSON data: {s}")
+            traceback.print_exc()
         return cls(s, format="csv", **kwargs)
 
     @classmethod
@@ -119,6 +141,12 @@ class IODict(BaseDict):
         https://docs.python.org/3/library/json.html
         Return a new dict instance. A ValueError is raised in case of failure.
         """
+        try:
+            return cls(json.loads(s), **kwargs)
+        except Exception as e:
+            # raise ValueError(f"Invalid JSON data: {s}") from e
+            print(f"Invalid JSON data: {s}")
+            traceback.print_exc()
         return cls(s, format="json", **kwargs)
 
     @classmethod
@@ -209,6 +237,8 @@ class IODict(BaseDict):
         raise NotImplementedError
 
     def to_csv(self, key="values", columns=None, columns_row=True, **kwargs):
+        #TODO: MAKE SURE NESTING WORKS -> check og benedict to see behavior
+        
         """
         Encode a list of dicts in the current dict instance in CSV format.
         Encoder specific options can be passed using kwargs:
@@ -218,7 +248,11 @@ class IODict(BaseDict):
         """
         kwargs["columns"] = columns
         kwargs["columns_row"] = columns_row
-        return self._encode(self.dict()[key], "csv", **kwargs)
+        if key == "values":
+            return self._encode([kv for kv in self.dict().items()], "csv", **kwargs)
+        else:
+            return to_csv(self.dict()[key], **kwargs)
+
 
     def to_html(self, **kwargs):
         raise NotImplementedError
@@ -233,6 +267,10 @@ class IODict(BaseDict):
         """
         return self._encode(self.dict(), "ini", **kwargs)
 
+    def json(self, **kwargs):
+        return self.to_json(**kwargs)
+    def _json(self, **kwargs):
+        return self.to_json(**kwargs)
     def to_json(self, **kwargs):
         """
         Encode the current dict instance in JSON format.
@@ -241,7 +279,39 @@ class IODict(BaseDict):
         Return the encoded string and optionally save it at 'filepath'.
         A ValueError is raised in case of failure.
         """
-        return self._encode(self.dict(), "json", **kwargs)
+        D = self.dict()
+        print("jjjjjjjjjjjjjj",self)
+        print("dddddddddddddd",D)
+        def dictOrValue(D):
+            if isinstance(D,dict):
+                if len(D) == 1 and "value" in D:
+                    print("TTTTTTTTTTT",)
+                    print("TTTTTTTTTTT",)
+                    print("TTTTTTTTTTT",)
+                    print("TTTTTTTTTTT",D,D["value"])
+                    return D["value"]
+                for k in D:
+                    print("kkkkkk",k)
+                    target = D[k]
+                    if isinstance(target, dict):
+                        print("kkkkkkD",target)
+                        if len(target) == 1 and "value" in target:
+                            print("TTTTTTTTTTT",)
+                            print("TTTTTTTTTTT",)
+                            print("TTTTTTTTTTT",)
+                            print("TTTTTTTTTTT",D,target["value"])
+                            # return target["value"]
+                            D[k] = target["value"]
+                        else:
+                            for kk in target:
+                                print("kkkkkkDDDDkkkk",kk)
+                                target[kk] = dictOrValue(target[kk])
+            return D
+        D = dictOrValue(D)
+        print("DDDDDDDDDDDDDDDDDDDDDDDDDD",D)
+        if len(D) == 1 and "value" in D:
+            return self._encode(D["value"], "json", **kwargs)
+        return self._encode(D, "json", **kwargs)
 
     def to_pickle(self, **kwargs):
         """
