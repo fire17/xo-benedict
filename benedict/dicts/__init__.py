@@ -71,7 +71,7 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 		# if "_skip" not in kwargs or not kwargs["_skip"]:  
 		#     super().__init__(*args, **kwargs)
 		extras = []
-		if len(args)==1:
+		if len(args)>=1:
 			if isinstance(args[0],str):
 				# try:
 				if True:
@@ -109,8 +109,8 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 					extras.append(a)
 			if len(final) > 0:
 				args = [final]
-		super().__init__(*args, **kwargs)
-		
+		super().__init__(*args[::], **kwargs)
+		#{"AAA": {"b": {"c": "yooooooooooooooo'\""}}, "a": {"b": {"c": {"d": "DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}, "aa": 1111111}
 		# extras = []
 		extra_keys = {k:v for k,v in kwargs.items() if k not in self.ignore_keys}
 		
@@ -920,3 +920,17 @@ JSONSerializer.disable_c_make_encoder()
 
 # fix benedict yaml representer - #43
 YAMLSerializer.represent_dict_for_class(benedict)
+
+
+# from benedict import benedict
+
+
+# def testing():
+# 	bi = benedict()
+# 	bi.a.b.c = "yooooooooooooooo'\""
+# 	bi2 = benedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
+# 	print(bi2)
+
+
+
+# testing()
