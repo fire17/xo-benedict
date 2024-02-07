@@ -29,6 +29,8 @@ from benedict.dicts.keypath import KeypathDict
 from benedict.dicts.parse import ParseDict
 from benedict.serializers import JSONSerializer, YAMLSerializer
 
+import json, ast
+
 __all__ = [
 	"benedict",
 	"IODict",
@@ -70,6 +72,20 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 		#     super().__init__(*args, **kwargs)
 		extras = []
 		if len(args)==1:
+			if isinstance(args[0],str):
+				# try:
+				if True:
+					#TODO: more general string to dict parser
+					print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
+					print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
+					# args[0] = self.from_json(args[0])
+					args = [ast.literal_eval(args[0].strip("'<>() ")) ]
+					# args = [json.loads(repr(args[0]).strip("'<>() ").replace("\\\'","\\\\'"))]#..replace('\'', '\"'))]
+					print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
+					print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
+				# except:
+				# 	print("XXXXXXXXXXXXXXXXXXXXXXXXXX Could not load from string",)
+				# 	pass
 			if isinstance(args[0], dict):
 				for k in args[0]:
 					if k not in self.ignore_keys:
@@ -83,6 +99,7 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 				args = [extras]
 		if len(args)>1:
 			final = {}
+			print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOO",len(args),args)
 			for a in args:
 				if isinstance(a,dict) and not isinstance(a,type(self)):
 					for k in a:
@@ -782,47 +799,47 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 	def __neg__(self):
 		if "value" in self:
 			return -self["value"]
-		return self._cast(super().__neg__(other))
+		return super().__neg__()
 
 	def __pos__(self):
 		if "value" in self:
 			return +self["value"]
-		return self._cast(super().__pos__(other))
+		return super().__pos__()
 
 	def __abs__(self):
 		if "value" in self:
 			return abs(self["value"])
-		return self._cast(super().__abs__(other))
+		return super().__abs__()
 
 	def __invert__(self):
 		if "value" in self:
 			return ~self["value"]
-		return self._cast(super().__invert__(other))
+		return super().__invert__()
 		
 	def __complex__(self):
 		if "value" in self:
 			return complex(self["value"])
-		return self._cast(super().__complex__(other))
+		return super().__complex__()
 	
 	def __int__(self):
 		if "value" in self:
 			return int(self["value"])
-		return self._cast(super().__int__(other))
+		return super().__int__()
 	
 	def __float__(self):
 		if "value" in self:
 			return float(self["value"])
-		return self._cast(super().__float__(other))
+		return super().__float__()
 	
 	def __round__(self, n=None):
 		if "value" in self:
 			return round(self["value"], n)
-		return self._cast(super().__round__(other))
+		return super().__round__()
 
 	def __trunc__(self):
 		if "value" in self:
 			return math.trunc(self["value"])
-		return self._cast(super().__trunc__(other))
+		return super().__trunc__()
 	
 	# def __floor__(self):
 	# 	if "value" in self:
