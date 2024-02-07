@@ -252,7 +252,10 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 	#     return super().__repr__()
 	
 	def __getitem__(self, key):
-		return self._cast(super().__getitem__(key))
+		res = self._cast(super().__getitem__(key))
+		if key not in self.__dict__:
+			self.__dict__[key] = res
+		return res
 
 	def __setitem__(self, key, value, skip = False):
 		obj_type = type(self)
@@ -269,13 +272,50 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 			if key in self and key != "value":
 				if not isinstance(self[key],dict):
 					self[key] = value
+					# self.__dict__[key] = value
+					self.__dict__[key] = self[key]
 				else:
 					self[key].update(value)
+					for k in value:
+						# self[key].__dict__.update(value)
+						# self[key].__dict__[k]=value[k]
+						# self[key].__dict__[k]=self[key][k]
+						# self.__dict__[key].__dict__[k]=self[key][k]
+						pass
+					# self[key].__dict__.update(value)
+					# self[key].__dict__.update(value)
 				return self[key]
 			else:
-				return self.__setitem__(key, value, skip = True)
+				# self.__dict__[key] = value
+				res = self.__setitem__(key, value, skip = True)
+				self.__dict__[key] = self[key]
+				
+				return res
 		print("set 3333333", value)
-		return super().__setitem__(key, self._cast(value))
+		f = self._cast(value)
+		res = super().__setitem__(key, f)
+		# if isinstance(value, dict):
+		# 	for k in value:
+		# 		# self[key].__dict__[k] = self[key][k]
+		# 		# self[key].__dict__[k] =
+				 
+		# 		print("@@@@@@@@@@@@",key)
+		# 		if key in self.__dict__:
+		# 			self.__dict__[key].__dict__[k] = self[key][k]
+		# 			print("@@@@@@xxx@@@@@@",key)
+		# self.__dict__[key] = self[key]
+		# # self.__dict__[key] = f
+		if isinstance(value, dict):
+			for k in value:
+				# self.__dict__[key].__dict__[k] = self[key][k]
+				# self.__dict__[key].__dict__[k] = value[k]
+				# res.__dict__[k] = self[key][k]
+				# self.__dict__[k] = self[key][k]
+				# self.__dict__[key][k]=self[key][k]
+				# self.__dict__[key].__dict__[k]=value[k]
+				# self.__dict__[key].__dict__[k]=self[key][k]
+				pass #messup
+		return res
 
 	def _cast(self, value):
 		"""

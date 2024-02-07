@@ -57,10 +57,14 @@ class BaseDict(dict):
             self._dict = self._get_dict_or_value(args[0])
             self._pointer = True
             super().__init__(self._dict)
+            for k in args[0]:
+                self.__dict__[k] = self[k]
             return
         self._dict = None
         self._pointer = False
         super().__init__(*args, **kwargs)
+        for k in kwargs:
+            self.__dict__[k] = self[k]
 
     def __bool__(self):
         if self._pointer:
@@ -196,13 +200,22 @@ class BaseDict(dict):
                     return
                 self._dict[key].clear()
                 self._dict[key].update(value)
+                # self.__dict__[key] = self._dict[key]
+                # self.__dict__[key] = self[key]
                 return
             if isinstance(value,type(self)) and "value" in value:
                 self._dict[key] = value["value"]
             else:
                 self._dict[key] = value
+            # self.__dict__[key] = self._dict[key]
+            # self.__dict__[key] = self[key]
             return
+        # self.__dict__[key] = self._dict[key]
         super().__setitem__(key, value)
+        # self.__dict__[key] = self._dict[key]
+        # self.__dict__[key] =value
+        # self.__dict__[key] = self[key]
+        
 
     def __setstate__(self, state):
         self._dict = state["_dict"]
