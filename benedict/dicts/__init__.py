@@ -38,14 +38,21 @@ __all__ = [
 	"KeylistDict",
 	"KeypathDict",
 	"ParseDict",
+	"xo",
 ]
 counter = 0
 
 
-
+#BUG
 #TODO: fix update()
 #TODO: fix _call_ kwargs override instead of update - push kwargs into args as one dict
+
+
 #TODO bring show from xo og + add colors indicating on performance metrics (usage) (size) (weight of data)
+#TODO functional chaining functions and pipe results
+#TODO make indepenent class
+#TODO make class multi flavors [redis, vis_performance, web front [js], remote network [mqtt,zero] , tables[csv,df,sql]]
+#TODO make easy micro services communication
 class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 	ignore_keys = ['_override','keyattr_dynamic', 'keyattr_enabled','keypath_separator','check_keys']
 	def __init__(self, *args, **kwargs):
@@ -606,12 +613,12 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 
 
 
-	#TODO Add value operations
-
-	#TODO Add _id
-	#TODO Add subscribe
-	#TODO Add setHook
-	#TODO Add getHook
+	#TODO print cleanup
+	#TODO add _id
+	#TODO add subscribe
+	#TODO add getHook
+	#TODO add setHook
+	#TODO flat expando - get _ids from _root_
 	def __imatmul__(self, other):
 		''' Special Subscribe function '''
 		print("SUBSCRIBING TO ",self)
@@ -1017,4 +1024,38 @@ def testing():
 	print(bi)
 
 
+class xo(benedict):
+	''' Expando Object Based on BeneDict 
+	- https://github.com/fire17/xo-benedict
+
+	## Example:
+	xo = xo({"a":1,"b":2})
+	xo.a.b.c = 3
+	xo.show() # xo.whileShow() is also available (lazy updates,dash)
+	xo.dash()
+
+	
+	'''
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		# self.show = self.whileShow
+		# remList = [k for k in self.__dict__keys() if k.startswith("_")]
+		remList = [k for k in self.__dict__.keys() if k not in self.keys()]
+		for k in remList:
+			# self.__dict__.pop(k)
+			pass
+
+		# self.dash = self.whileDash
+		# self.show()
+	def xxx(self, *args, **kwargs):
+		print("XXXXXXXXXXXXXXXXXXX")
+
+	def search(self, query, *args, **kwargs):
+		''' Search for a key in the dictionary. '''
+		#TODO: currently choosing defult, add params to get more/all results from super()
+
+		return list(super().search(query)[0])[0][query]
+		# return self.find(query, *args, **kwargs)
 # testing()
+

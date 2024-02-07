@@ -1,4 +1,5 @@
 from benedict.dicts import benedict
+from benedict.dicts import xo, SpecialOperations
 from benedict.metadata import (
     __author__,
     __copyright__,
@@ -9,6 +10,7 @@ from benedict.metadata import (
 )
 
 __all__ = [
+    "xo",
     "benedict",
     "__author__",
     "__copyright__",
