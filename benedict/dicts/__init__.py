@@ -41,6 +41,11 @@ __all__ = [
 ]
 counter = 0
 
+
+
+#TODO: fix update()
+#TODO: fix _call_ kwargs override instead of update - push kwargs into args as one dict
+#TODO bring show from xo og + add colors indicating on performance metrics (usage) (size) (weight of data)
 class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 	ignore_keys = ['_override','keyattr_dynamic', 'keyattr_enabled','keypath_separator','check_keys']
 	def __init__(self, *args, **kwargs):
@@ -254,8 +259,44 @@ class benedict(KeyattrDict, KeypathDict, IODict, ParseDict):
 	def __getitem__(self, key):
 		res = self._cast(super().__getitem__(key))
 		if key not in self.__dict__:
+			print("WORKING !!!!!!!!!!!!")
 			self.__dict__[key] = res
 		return res
+
+	def set(self,*args, **kwargs):
+		print("SSSSSSSSSSSSSSSSS",)
+		print("SSSSSSSSSSSSSSSSS")
+		print("SSSSSSSSSSSSSSSSS")
+		print("SSSSSSSSSSSSSSSSS",args,kwargs,)
+		print("CCCCCCCCCCCCCCCCC",self)
+		for k in kwargs:
+			self.set(k,kwargs[k])
+		kwargs = {}
+		#TODO: goto parent, set by name
+		if len(args) == 1:
+			target = args[0]
+			if isinstance(target, dict) or isinstance(target, type(self)):
+				for k in target:
+					self[k] = target[k]
+				return self
+			# elif isinstance(target, obj_type):
+			# 	for k in target:
+			# 		self[k] = target[k]
+			# 	return self
+			# else:
+			# 	self["value"] = target
+			# 	return self
+			self["value"] = target
+			return self
+		print("######################")
+		print("######################")
+		print("######################")
+		print("######################")
+		print("######################",args, kwargs)
+		if len(args) > 1:
+			res = super().set(*args, **kwargs)
+		# if res: return res;
+		return self
 
 	def __setitem__(self, key, value, skip = False):
 		obj_type = type(self)
@@ -965,12 +1006,15 @@ YAMLSerializer.represent_dict_for_class(benedict)
 # from benedict import benedict
 
 
-# def testing():
-# 	bi = benedict()
-# 	bi.a.b.c = "yooooooooooooooo'\""
-# 	bi2 = benedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
-# 	print(bi2)
-
+def testing():
+	bi = benedict()
+	bi.a.b.c = "yooooooooooooooo'\""
+	bi.a.b.c.d = 444444444
+	bi2 = benedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
+	print(bi2)
+	
+	bi.a.b.c.set(3).d.set(4).e(5).f.set(6).g("777").set("h",888).set(7777, HH = "1000000000000000").HH.awesome.set(11111)
+	print(bi)
 
 
 # testing()
