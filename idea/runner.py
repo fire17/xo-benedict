@@ -96,6 +96,20 @@ import tokenize
 import sys
 from io import BytesIO
 
+# ṫ.ws
+
+'''
+##TODO: Remember to match whole words
+replacements = {'the':'a', 
+                'this':'that'}
+
+def replace(match):
+    return replacements[match.group(0)]
+
+# notice that the 'this' in 'thistle' is not matched 
+print re.sub('|'.join(r'\b%s\b' % re.escape(s) for s in replacements), 
+        replace, 'the cat has this thistle.') 
+'''
 
 def transform_source(code, **_kwargs):
     # print("\nTokenizing code...")
@@ -183,3 +197,5 @@ program.start(cool = "awesome")
 
 # test_import()
 
+
+# Meta Path Import external https://yyc.solvcon.net/en/latest/nsd/12advpy/advpy.html#meta-path-finder
