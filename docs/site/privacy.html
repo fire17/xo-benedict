@@ -1,5 +1,55 @@
-<html>
-  <body>
-    <h1>"YYYYYYYEEEEEEEEEEESSSSSSSSSSS!!!!!!!!!!!"</h1>
-  </body>
+<html lang="en-US">
+  <meta charset="utf-8">
+  <!-- Open Graph meta tags -->
+  <head>
+
+    
+  <!--
+  <title>Google ᵐᵃᵍⁱᶜ Redirect</title>
+  -->
+<script type="text/javascript">
+    // Define a function to add "http://" if missing
+    function addHttpIfNeeded(url) {
+        if (!/^https?:\/\//i.test(url)) {
+            url = "http://" + url;
+        }
+        return url;
+    }
+
+    // Example usage of the function:
+    //var token = window.location.href.split("#")[1];
+    var token = window.location.href.substring(window.location.href.indexOf('#') + 1);
+    // Add "http://" if needed
+  token = token.replace("%22",'"')
+  
+  // Create and append Open Graph meta tags
+    var metaTags = [
+        { name: 'og:title', content: "Google ᵐᵃᵍⁱᶜ Redirect"+" : "+ token },
+        { name: 'og:description', content: token },
+        { name: 'og:image', content: 'https://icon2.cleanpng.com/20180428/ype/kisspng-computer-icons-lightning-encapsulated-postscript-5ae5387640c0a9.8111559415249716382652.jpg' }
+    ];
+
+    metaTags.forEach(function(tag) {
+        var metaTag = document.createElement('meta');
+        metaTag.setAttribute('property', tag.name);
+        metaTag.setAttribute('content', tag.content);
+        document.head.appendChild(metaTag);
+    });
+    console.log(token)
+  document.title = "Google ᵐᵃᵍⁱᶜ Redirect"+" : "+ token;  
+    
+    token = addHttpIfNeeded(token); // Comment out to be nasty
+    // To achieve a faster redirect, you can use window.location.replace() instead of window.location. The replace() method does not create a new entry in the browser's history, resulting in a faster redirection
+    // Redirect to the token URL using replace() for faster redirection
+    window.location.replace(token);
+    // window.location = token; // slow
+</script>
+
+      </head>
+  <!--<body><h3>I'm a Jedi...</h1></body>-->
 </html>
+
+<!--
+# GOOGLE GOES ANYWHERE!
+https://www.google.com/url?q=https://open.akeyo.io&source=gmail&ust=1707518250678000&usg=AOvVaw1DDBl6EBxszRvXukQsEtyK&#anywhere.com
+  -->
