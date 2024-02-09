@@ -125,3 +125,22 @@ print(reveal_url(obf))
 
 
 
+
+# Turn repo into github pages
+export GHT=<github token>
+curl -L \
+  -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $GHT" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/fire17/xo-benedict/pages \
+  -d '{"cname":"xo.akeyo.io", "source":{"branch":"main","path":"/"}}'
+### UPDATE EXISTING
+curl -L \                                   3:59:19
+  -X PUT \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $GHT" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/fire17/xo-benedict/pages \
+  -d '{"cname":"xo.akeyo.io", "source":{"branch":"main","path":"/docs"}}'
+
