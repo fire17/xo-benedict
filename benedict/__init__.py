@@ -1,5 +1,5 @@
 from benedict.dicts import benedict
-from benedict.dicts import xo, SpecialOperations
+from benedict.dicts import xo
 from benedict.metadata import (
     __author__,
     __copyright__,
