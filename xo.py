@@ -5,23 +5,64 @@ from benedict.dicts.keyattr import KeyattrDict
 from benedict.dicts.keypath import KeypathDict
 from benedict.dicts.parse import ParseDict
 from benedict import benedict#, KeyattrDict, KeypathDict, IODict, ParseDict
-b = benedict()
+# b = benedict()
+import dill as pk
 
 
 counter =0
 
 class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	# _benedict = benedict()
+	_root = None
+	_isRoot = False
+	_id:str = "yyy"
+	
 	ignore_keys = ['_override','keyattr_dynamic', 'keyattr_enabled','keypath_separator','check_keys']
-	def __init__(self, *args, **kwargs):
+	def __init__(self,*args, **kwargs):
 		"""
 		Constructs a new instance.
 		"""
+		if xoBenedict._root is None:
+			xoBenedict._root = self
+			self._isRoot = True
+		else:
+			self._root = xoBenedict._root
+		
+		nid = None
+		print("iiiiiiiiiiiiiiii",args,kwargs)
+		if "_id" in kwargs:
+			nid = kwargs.pop("_id")
+		print("_IDIDIDID", nid, "param")
+		# print("_IDIDIDID", nid, "param",_id)
+		if nid:
+			self._id = nid
+		else:
+			# self._id = str(_id)
+			self._id = "ROOT"
+		print(":::",self._id)
+		
+
 		global counter
 		my_c = counter
 		counter += 1
 		# print("iiiiiiiiiiiiiiiiiiiiiiiiiiiii",":::",my_c,":::",len(args))
 		kwargs["keyattr_dynamic"] = True
+		setRoot = False
+		# if "_parent" not in kwargs:
+			# print("RRRRRRRRRRRRRRRRRRRRRRRRooooooooooot")
+		# 	pass
+			# kwargs["_isRoot"] = True
+			# kwargs["_parent"] = None
+			# kwargs["_root"] = self
+			# self.set("_root",[self])
+			# setRoot = True
+		# else:
+		# 	self.set("_root",kwargs["_parent"]["_root"])
+
+		# 	kwargs["_isRoot"] = False
+		# 	kwargs["_root"] = kwargs["_parent"]["_root"]
+
+			
 		# args = list(args)
 		
 		# no args other than self
@@ -34,10 +75,13 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# kwargs.setdefault("keyattr_dynamic", True)
 			kwargs.setdefault("keypath_separator", obj.keypath_separator)
 			# print("OOOOOOOOOOOOOOOOxxxxOOOOOOOOOOOOO",len(args),args,kwargs)
-
+			print("@ @ @ @ @ @ @ @ @ @ B", args, kwargs)
 			super().__init__(obj.dict(), **kwargs)
 			# self.update(kwargs)
 			# print("OOOOOOOOO o o ")
+			# if setRoot:
+				# self.set("_root",kwargs["_parent"]["_root"])
+				# self.set("_root",[self])
 			return
 		# super().__init__(*args, **kwargs)
 		# if "_skip" not in kwargs or not kwargs["_skip"]:  
@@ -48,13 +92,13 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# try:
 				if True:
 					#TODO: more general string to dict parser
-					print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
-					print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
+					# print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
+					# print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
 					# args[0] = self.from_json(args[0])
 					args = [ast.literal_eval(args[0].strip("'<>() ")) ]
 					# args = [json.loads(repr(args[0]).strip("'<>() ").replace("\\\'","\\\\'"))]#..replace('\'', '\"'))]
-					print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
-					print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
+					# print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
+					# print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
 				# except:
 				# 	print("XXXXXXXXXXXXXXXXXXXXXXXXXX Could not load from string",)
 				# 	pass
@@ -83,12 +127,25 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOO",len(args),args)
 		# print("OOOOOOOOOOOOOOOOvvvvOOOOOOOOOOOOO",len(args),args,kwargs)
 
+		# print("@ @ @ @ @ @ @ @ @ @ ", args, kwargs)
 		super().__init__(*args[::], **kwargs)
 		#{"AAA": {"b": {"c": "yooooooooooooooo'\""}}, "a": {"b": {"c": {"d": "DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}, "aa": 1111111}
 		# extras = []
+
+		if "_parent" not in kwargs:
+			pass
+			# kwargs["_isRoot"] = True
+			# kwargs["_parent"] = None
+			# kwargs["__root"] = self
+		# else:
+		# 	kwargs["_isRoot"] = False
+		# 	kwargs["_root"] = kwargs["_parent"]["_root"]
 		extra_keys = {k:v for k,v in kwargs.items() if k not in self.ignore_keys}
 		
-		
+		# if setRoot:
+			# extra_keys["_root"] = kwargs["_parent"]["_root"]
+			# extra_keys["_root"] = self
+			# self.set("_root",)
 		# if len(args)==1 and args[0] == self:
 		#         return self.__init__(**{**{"_skip":True}, **args[0]})
 
@@ -206,11 +263,28 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 	
 	def __getitem__(self, key):
-		res = self._cast(super().__getitem__(key))
+		
+		# if key not in self.__dict__:
+		# getKeys = True
+		# if key == "keys":
+		# 	print("XXXXXXXXXXXX")
+		# if key not in self.keys():
 		if key not in self.__dict__:
+			res = self._cast(super().__getitem__(key), key = self._id+"."+key)
 			# print("WORKING !!!!!!!!!!!!")
 			self.__dict__[key] = res
-		return res
+			return res
+		if key in self.__dict__ and isinstance(self[key],type(self)):
+			print("skip!")
+			return dict(self).__getitem__(key)
+		return super().__getitem__(key)
+
+
+    # def __getitem__(self, key):
+    #     return self._cast(super().__getitem__(key), key = self._id+key)
+
+    # def __setitem__(self, key, value):
+    #     return super().__setitem__(key, self._cast(value))
 
 	def set(self,*args, **kwargs):
 		# print("SSSSSSSSSSSSSSSSS",)
@@ -247,15 +321,18 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# if res: return res;
 		return self
 
-	def __setitem__(self, key, value, skip = False):
+	def __setitem__(self, key, value, skip = False, **kw):
+		
 		obj_type = type(self)
 		# obj_type()
-		# print("set KKKKKKKK",key)
+		print("set KKKKKKKK",key)
 		if key != "value" and not isinstance(value, dict) and not isinstance(value, obj_type) and not skip:
-			# print("111111111111", value)
+			print("111111111111", value)
 			
-			value = obj_type({"value":value}, keyattr_dynamic=True)
-			# print("set 22222222222", value)
+			# value = obj_type({"value":value}, keyattr_dynamic=True, _parent = self)
+			print("NEXT:",self._id+"."+key)
+			value = xoBenedict({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+			print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
 			# print("value", value)
 			# print("key", key)
@@ -276,14 +353,30 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					# self[key].__dict__.update(value)
 				return self[key]
 			else:
+				print("key",key,"type",type(value),"value",value)
 				# self.__dict__[key] = value
-				res = self.__setitem__(key, value, skip = True)
-				self.__dict__[key] = self[key]
-				
-				return res
-		# print("set 3333333", value)
-		f = self._cast(value)
-		res = super().__setitem__(key, f)
+				# self[key] = value
+				# res = super().__setitem__(key, value)
+				print("222222222222222@@@@@@@@@@@@@@@@@22")
+				# res = self.__setitem__(key, value, skip = True)
+				# res = self.__setitem__(key, value, skip = True)
+				# self.__dict__[key] = self[key]
+				# return res
+				# return self[key]
+		if True:
+			print("set 3333333", value, key, )
+			print(key in self,"!!!!!!!!!!!!", type(value))
+			if isinstance(value, dict) and not isinstance(value, type(self)):
+				value = self._cast(value, key = self._id+"."+key)
+			# self.__dict__[key]=f
+			# return f
+			# res = super().__setitem__(key, f)
+			# if key in self.__dict__ and isinstance(self[key],type(self)):
+			# 	print("skip!")
+			# 	return super().__getitem__(key)
+			res = super().__setitem__(key, value)
+			self.__dict__[key]=value
+			print(key in self,"!!!!!!!!!!!!")#, type(self.__dict__[key]))
 		# if isinstance(value, dict):
 		# 	for k in value:
 		# 		# self[key].__dict__[k] = self[key][k]
@@ -305,21 +398,36 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# self.__dict__[key].__dict__[k]=value[k]
 				# self.__dict__[key].__dict__[k]=self[key][k]
 				pass #messup
+		# return self[key]
 		return res
 
-	def _cast(self, value):
+
+	# def items(self):
+	#     for key, value in super().items():
+	#         # yield (key, self._cast(value))
+	#         yield (key, value)
+
+	def _cast(self, value, key = None):
 		"""
 		Cast a dict instance to a benedict instance
 		keeping the pointer to the original dict.
 		"""
+		# print("Cast", self)
 		obj_type = type(self)
+		print("oooooooo",obj_type,key)
 		if isinstance(value, dict) and not isinstance(value, obj_type):
-			return obj_type(
-				value,
-				keyattr_enabled=self._keyattr_enabled,
-				keyattr_dynamic=self._keyattr_dynamic,
-				keypath_separator=self._keypath_separator,
-				check_keys=False,
+			data = {"keyattr_enabled":self._keyattr_enabled,
+				"keyattr_dynamic":self._keyattr_dynamic,
+				"keypath_separator":self._keypath_separator,
+				"check_keys":False,}
+			# if key:
+			# 	data["_id"] = key
+			
+			# return obj_type(
+			return xoBenedict(
+				value,_id = key,
+				**data
+				# _parent = self,
 			)
 		elif isinstance(value, list):
 			for index, item in enumerate(value):
@@ -780,7 +888,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("DDDDDDDDDDDDDDDDDDD")
 		# return "{"+""", """.join((f"""{repr(key)}: {type(self)(val) if type(val) == dict else val}""") for key, val in self.items())+"}"
 		# return "{"+", ".join((f"\'{key}\': {val}") for key, val in self.items())+"}"
-		return "{"+", ".join((f"\"{key}\": {val}") for key, val in self.items())+"}"
+		return "{"+", ".join((f"\"{key}\": {val}") for key, val in self.items() if len(key)>0 and key[0]!="_")+"}"
 
 	def to_csv(self, key="values", columns=None, columns_row=True, **kwargs):
 		#TODO: MAKE SURE NESTING WORKS -> check og benedict to see behavior
@@ -799,6 +907,15 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		else:
 			return to_csv(self.dict()[key], **kwargs)
 
+	@classmethod
+	def from_json(cls, s, **kwargs):
+		"""
+		Load and decode JSON data from url, filepath or data-string.
+		Decoder specific options can be passed using kwargs:
+		https://docs.python.org/3/library/json.html
+		Return a new dict instance. A ValueError is raised in case of failure.
+		"""
+		return cls(s, **kwargs)
 	def json(self, **kwargs):
 		return self.to_json(**kwargs)
 	def _json(self, **kwargs):
@@ -844,37 +961,218 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if len(D) == 1 and "value" in D:
 			return self._encode(D["value"], "json", **kwargs)
 		return self._encode(D, "json", **kwargs)
+	
+	def _getRoot(self):
+		if self._parent is not None:
+			return self._parent._getRoot()
+		return self
+
+
+class xoEvents(xoBenedict):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		ignore = ["append","clean","clear","clone","copy","deepcopy","deepupdate","dict","dump","filter","find","flatten","from_base64","from_cli","from_csv","from_html","from_ini","from_json","from_pickle","from_plist","from_query_string","from_toml","from_xls","set","setdefault","standardize","subset","swap","to_base64","to_cli","to_csv","to_html","to_ini","to_json","to_pickle","to_plist","to_query_string","to_toml","to_xls","to_xml","to_yaml","traverse","unflatten","unique","update","values","xxx","get_str_list","get_uuid","get_uuid_list","groupby","ignore_key","invert","items","items_sorted_by_keys","items_sorted_by_values","json","keyattr_dynami","keyattr_enable","keypath_separato","keypaths","keys","match","merge","move","nest","pop","popitem","remove","rename","search","from_xml","from_yaml","fromkeys","get","get_bool","get_bool_list","get_date","get_date_list","get_datetime","get_datetime_list","get_decimal","get_decimal_list","get_dict","get_email","get_float","get_float_list","get_int","get_int_list","get_list","get_list_item","get_phonenumber","get_slug","get_slug_list","get_str",]
+		# self.__class__.__dir__ = lambda self, *a, **kw: list(set(dir(self)) - set(ignore))
+		# self.__dir__ = self.keys
+		# self.__dir__ = self.keys
+	def __getitem__(self, key, *args, **kwargs):
+		res = super().__getitem__(key, *args, **kwargs)
+		# if key == '__dir__':
+		# 	# return res without keys ['ignore','_pointer','_dict']
+		# 	return {k:v for k,v in res.items() if k not in ['ignore','_pointer','_dict']}
+		print("Getting", key)
+		return res
+	def __setitem__(self, key, value, *args, **kwargs):
+		if "_id" in kwargs:
+			print("XIDX - Setting", key, "to", value, kwargs["_id"])
+		print("Setting", key, "to", value)
+
+		res = super().__setitem__(key, value, *args, **kwargs)
+		return res
+
+
+	# @classmethod
+	def xdir(self, *a, **kw):
+		print("ssssssssssss",type(self),self, a, kw)
+		ignore = ["append","clean","clear","clone","copy","deepcopy","deepupdate","dict","dump","filter","find","flatten","from_base64","from_cli","from_csv","from_html","from_ini","from_json","from_pickle","from_plist","from_query_string","from_toml","from_xls","set","setdefault","standardize","subset","swap","to_base64","to_cli","to_csv","to_html","to_ini","to_json","to_pickle","to_plist","to_query_string","to_toml","to_xls","to_xml","to_yaml","traverse","unflatten","unique","update","values","xxx","get_str_list","get_uuid","get_uuid_list","groupby","ignore_key","invert","items","items_sorted_by_keys","items_sorted_by_values","json","keyattr_dynami","keyattr_enable","keypath_separato","keypaths","keys","match","merge","move","nest","pop","popitem","remove","rename","search","from_xml","from_yaml","fromkeys","get","get_bool","get_bool_list","get_date","get_date_list","get_datetime","get_datetime_list","get_decimal","get_decimal_list","get_dict","get_email","get_float","get_float_list","get_int","get_int_list","get_list","get_list_item","get_phonenumber","get_slug","get_slug_list","get_str",]
+		return list(set(dir(self)) - set(ignore))
+		print("XXX", self.keys())
+		return list(self.keys())
+
+	# def __dir__(self):
+	# 	print("XXX", self.keys())
+	# 	return list(self.keys())
+		ignore = ["append","clean","clear","clone","copy","deepcopy","deepupdate","dict","dump","filter","find","flatten","from_base64","from_cli","from_csv","from_html","from_ini","from_json","from_pickle","from_plist","from_query_string","from_toml","from_xls","set","setdefault","standardize","subset","swap","to_base64","to_cli","to_csv","to_html","to_ini","to_json","to_pickle","to_plist","to_query_string","to_toml","to_xls","to_xml","to_yaml","traverse","unflatten","unique","update","values","xxx","get_str_list","get_uuid","get_uuid_list","groupby","ignore_key","invert","items","items_sorted_by_keys","items_sorted_by_values","json","keyattr_dynami","keyattr_enable","keypath_separato","keypaths","keys","match","merge","move","nest","pop","popitem","remove","rename","search","from_xml","from_yaml","fromkeys","get","get_bool","get_bool_list","get_date","get_date_list","get_datetime","get_datetime_list","get_decimal","get_decimal_list","get_dict","get_email","get_float","get_float_list","get_int","get_int_list","get_list","get_list_item","get_phonenumber","get_slug","get_slug_list","get_str",]
+		print(list(super().__dir__()))
+		print("DDDDDDDD",type(super().__dir__()),super().__dir__()[2])
+		print("XXXXXXXX",[x for x in super().__dir__() if x in self.keys()])
+		return [x for x in super().__dir__() if x in self.keys()]
+		return list(set(super().__dir__()) - set(ignore))
+	
+
+
+
+defaultRedisConfig = {
+	# "host" : "0.0.0.0",
+	"host" : "localhost",
+	# "port" : 6379,
+	"port" : 6379,
+}
+def getArgs():
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--host", help="Redis host",
+						default=defaultRedisConfig["host"])
+	parser.add_argument("--port", help="Redis port",
+						default=defaultRedisConfig["port"])
+	args = parser.parse_args()
+	return args
+
+host = getArgs().host
+port = getArgs().port
+
+def getArgsFromEnv(defaultHost = host, defaultPort = port):
+	import os
+	host = os.getenv("REDIS_HOST", defaultHost)
+	port = os.getenv("REDIS_PORT", defaultPort)
+	return host, port	
+host, port = getArgsFromEnv(host, port)
+from redis import Redis as RedisClient
+
+class xoRedis(xoEvents):
+	_host = host
+	_port = port
+	_db = 0
+	_rootName = "root"
+	_namespace = "namespace"
+	# _parent = None
+	_redis = None
+	_pubsub = None
+	_binded = None
+	_live = None
+	def __init__(self, *args, **kwargs):
+		self._host = kwargs["host"] if "host" in kwargs else host
+		self._port = kwargs["port"] if "port" in kwargs else port
+		
+		self._rootName = "xoRedis"
+		self._namespace = self._rootName
+		# if self._isRoot: # should work the same
+		
+		super().__init__(*args, **kwargs)
+		# if self._getRoot()._redis:
+		# 	pass
+		# 	print("!!!!!!!!!!!!!")
+		# time.sleep(1)
+		if self._isRoot:
+			print("RRRRRRRRRRRRRRRRRRRRRRRRooooooooooot")
+			if "host" not in kwargs:
+				kwargs["host"] = self._host
+			if "port" not in kwargs:
+				kwargs["port"] = self._port
+			if "db" not in kwargs:
+				kwargs["db"] = self._db
+			# self._redis = RedisClient(host=self._host, port=self._port, db=self._db)
+			# self._redis = RedisClient(**kwargs)
+			try:
+				print("CONNECTING")
+				self._redis = RedisClient(**kwargs)
+				success = self._redis.ping()
+				if not success:
+					print(f"Failed to connect to Redis at {self._host}:{self._port}")
+			except Exception as e:
+				# print(f"Failed to connect to Redis at {self._host}:{self._port} with error: {e.}")
+				print(f"Failed to connect to Redis at {self._host}:{self._port} with error")
+			
+		
+		self._binded = False
+		self._live = False
+			# self._pubsub = self._getRoot()._redis.pubsub()
+
+
+	
+	def _checkIfExist_(self, *args,**kwargs):
+		# print(" WILL CHECK IF EXISTS ", self._id, args, kwargs, " ON REDIS")
+		# Check if key exits on redis
+		try:
+			# print("ccccccccccccccccccheckifexist...............")
+			res = self._getRoot()._redis.exists(self._id)
+			return res
+		except Exception as e:
+			# print(f"Failed to connect to Redis at {self._host}:{self._port} with error: {e.}")
+			print(f"Redis is not connected")
+			return False
+		
+	def __getitem__(self, key, *args, **kwargs):
+		res = super().__getitem__(key, *args, **kwargs)
+		# if key == '__dir__':
+		# 	# return res without keys ['ignore','_pointer','_dict']
+		# 	return {k:v for k,v in res.items() if k not in ['ignore','_pointer','_dict']}
+		if "value" == key:
+			print("XGetting", key)
+			gotRes = False
+			try:
+				r = self._root._redis
+				res = r.get(self._id)
+				res = pk.loads(res)
+				gotRes = True
+			except:
+				print(" - - - COULD NOT UNPICKLE", self._id, ":::", res)
+			if gotRes and res != None:
+				print("SHOULD SET",key, "TO", res)
+				self.value = res
+			# self._setValue(res, skipUpdate = True)
+		print("ffffffffffff")
+		return res	
+		return res
+	def __setitem__(self, key, value, *args, **kwargs):
+		if key == "value" and value != self:
+			if value is not None:
+				print("XSetting", key, "to", value)
+				val = pk.dumps(value)
+				r = self._root._redis
+				res = r.set(self._id, val)
+				r.publish(self._id, val)
+		# if isinstance(value, type(self)):
+		# 	value._id = str(self._id)+str(key)
+
+		res = super().__setitem__(key, value, *args, **kwargs)
+		return res
 
 
 
 import time
 def testing():
-	bi = xoBenedict()
-	t = time.time()
-	bi.a.b.c = "yooooooooooooooo'\""
-	bi.a.b.c.d = 444444444
-	# bi.awesome.nice.abc.a.b.c.d.e.f.g
-	# print(bi)
-	bi.awesome.nice = "cool"
-	# t = time.time()
-	bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
-	
-	# print(bi)
-	print(":::",time.time()-t)
-	t = time.time()
-	bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
-	print(":::",time.time()-t)
-	t = time.time()
-	bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
-	print(":::",time.time()-t)
-	# print(bi)
-	t = time.time()
-	print(xoBenedict.from_json(bi.json()))
-	print(":::",time.time()-t)
+	# bi = xoBenedict()
+	if False:		
+		bi = xoEvents()
+		t = time.time()
+		bi.a.b.c = "yooooooooooooooo'\""
+		bi.a.b.c.d = 444444444
+		# bi.awesome.nice.abc.a.b.c.d.e.f.g
+		# print(bi)
+		bi.awesome.nice = "cool"
+		# t = time.time()
+		bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
+		
+		# print(bi)
+		print(":::",time.time()-t)
+		t = time.time()
+		bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
+		print(":::",time.time()-t)
+		t = time.time()
+		bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
+		print(":::",time.time()-t)
+		# print(bi)
+		t = time.time()
+		print(xoBenedict.from_json(bi.json()))
+		print(type(dict(bi)))
+		print(":::",time.time()-t)
 
 
-	bx = xoBenedict()
-	bx.a.b = 3
+xo = xoBenedict()
+print("......................")
+xo.a.b.c = 3
+# xo.a.b = 2
 	# print(bx)
 	# bi2 = xoBenedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
 	# print(bi2)
