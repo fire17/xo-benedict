@@ -25,19 +25,19 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# args = list(args)
 		
 		# no args other than self
-		print("aaaaaaaaaaaaaa",args,kwargs)#, args[0] == self)
+		# print("aaaaaaaaaaaaaa",args,kwargs)#, args[0] == self)
 		if len(args) == 1 and isinstance(args[0], xoBenedict):
-			print("zZZZZZZZZ")
+			# print("zZZZZZZZZ")
 			obj = args[0]
 			kwargs.setdefault("keyattr_enabled", obj.keyattr_enabled)
 			kwargs.setdefault("keyattr_dynamic", obj.keyattr_dynamic)
 			# kwargs.setdefault("keyattr_dynamic", True)
 			kwargs.setdefault("keypath_separator", obj.keypath_separator)
-			print("OOOOOOOOOOOOOOOOxxxxOOOOOOOOOOOOO",len(args),args,kwargs)
+			# print("OOOOOOOOOOOOOOOOxxxxOOOOOOOOOOOOO",len(args),args,kwargs)
 
 			super().__init__(obj.dict(), **kwargs)
 			# self.update(kwargs)
-			print("OOOOOOOOO o o ")
+			# print("OOOOOOOOO o o ")
 			return
 		# super().__init__(*args, **kwargs)
 		# if "_skip" not in kwargs or not kwargs["_skip"]:  
@@ -80,8 +80,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					extras.append(a)
 			if len(final) > 0:
 				args = [final]
-		print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOO",len(args),args)
-		print("OOOOOOOOOOOOOOOOvvvvOOOOOOOOOOOOO",len(args),args,kwargs)
+		# print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOO",len(args),args)
+		# print("OOOOOOOOOOOOOOOOvvvvOOOOOOOOOOOOO",len(args),args,kwargs)
 
 		super().__init__(*args[::], **kwargs)
 		#{"AAA": {"b": {"c": "yooooooooooooooo'\""}}, "a": {"b": {"c": {"d": "DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}, "aa": 1111111}
@@ -112,8 +112,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				else:
 					pass
 					# return
-		print("eeeeeeeeeeee",extras)
-		print("yo yo yo ", kwargs == self)
+		# print("eeeeeeeeeeee",extras)
+		# print("yo yo yo ", kwargs == self)
 		
 		if "value" not in extra_keys and len(extras) > 0:
 			extra_keys["value"] = extras[0] if len(extras)==1 else extras
@@ -122,23 +122,24 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# update_incoming = False # Set to False to work leaner (checking for self[key] doubles the calls)
 		if update_incoming:
 			for key, value in extra_keys.items():
-				print("mmm",key,value, key in self)
-				print("WWWWWWWW",type(value))
+				# print("mmm",key,value, key in self)
+				# print("WWWWWWWW",type(value))
 				if key != "value" and key in self and type(self[key]) != type(self):
 				# if key != "value" and key in self:# and type(self[key]) != type(self):
-					print("kkk",key,type(self[key]) != type(self))
-					print("MMMMMMMMMMMMM",key,value, key in self)
+					# print("kkk",key,type(self[key]) != type(self))
+					# print("MMMMMMMMMMMMM",key,value, key in self)
 					self[key] = value
-					print(".x.",key)
+					# print(".x.",key)
 				elif key not in self:
-					print("!!!!!!!!!!!!!!!!!!",key)
+					# print("!!!!!!!!!!!!!!!!!!",key)
 					if key == "value":
 						self[key] = value
 					else:
 						self[key] = value
 						pass
 				else:
-					print("...")
+					pass
+					# print("...")
 
 		if False and "_override" in kwargs and kwargs["_override"]:
 			if len(args) == 1 and isinstance(args[0], dict):
@@ -180,7 +181,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 
 	def __call__(self,*args, **kwargs):
-		print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL")
+		# print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL")
 		if "value" in self and "function" in str(type(self["value"])):
 			return self["value"](*args, **kwargs)
 		else:
@@ -207,16 +208,16 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	def __getitem__(self, key):
 		res = self._cast(super().__getitem__(key))
 		if key not in self.__dict__:
-			print("WORKING !!!!!!!!!!!!")
+			# print("WORKING !!!!!!!!!!!!")
 			self.__dict__[key] = res
 		return res
 
 	def set(self,*args, **kwargs):
-		print("SSSSSSSSSSSSSSSSS",)
-		print("SSSSSSSSSSSSSSSSS")
-		print("SSSSSSSSSSSSSSSSS")
-		print("SSSSSSSSSSSSSSSSS",args,kwargs,)
-		print("CCCCCCCCCCCCCCCCC",self)
+		# print("SSSSSSSSSSSSSSSSS",)
+		# print("SSSSSSSSSSSSSSSSS")
+		# print("SSSSSSSSSSSSSSSSS")
+		# print("SSSSSSSSSSSSSSSSS",args,kwargs,)
+		# print("CCCCCCCCCCCCCCCCC",self)
 		for k in kwargs:
 			self.set(k,kwargs[k])
 		kwargs = {}
@@ -236,11 +237,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# 	return self
 			self["value"] = target
 			return self
-		print("######################")
-		print("######################")
-		print("######################")
-		print("######################")
-		print("######################",args, kwargs)
+		# print("######################")
+		# print("######################")
+		# print("######################")
+		# print("######################")
+		# print("######################",args, kwargs)
 		if len(args) > 1:
 			res = super().set(*args, **kwargs)
 		# if res: return res;
@@ -249,15 +250,15 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	def __setitem__(self, key, value, skip = False):
 		obj_type = type(self)
 		# obj_type()
-		print("set KKKKKKKK",key)
+		# print("set KKKKKKKK",key)
 		if key != "value" and not isinstance(value, dict) and not isinstance(value, obj_type) and not skip:
-			print("111111111111", value)
+			# print("111111111111", value)
 			
 			value = obj_type({"value":value}, keyattr_dynamic=True)
-			print("set 22222222222", value)
+			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
-			print("value", value)
-			print("key", key)
+			# print("value", value)
+			# print("key", key)
 			if key in self and key != "value":
 				if not isinstance(self[key],dict):
 					self[key] = value
@@ -280,7 +281,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				self.__dict__[key] = self[key]
 				
 				return res
-		print("set 3333333", value)
+		# print("set 3333333", value)
 		f = self._cast(value)
 		res = super().__setitem__(key, f)
 		# if isinstance(value, dict):
@@ -728,25 +729,87 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 		return list(super().search(query)[0])[0][query]
 
+	def __repr__(self):
+		return self.__str__()
+		print("rrrrrrrrrrr",len(self.keys()),self.keys())
+		if self._pointer:
+			return repr(self._dict)
+		return super().__repr__()
+	
+	# def __str__(self):
+	#     print("ssssssssss",len(self.keys()),self.keys())
+	#     if self._pointer:
+	#         return str(self._dict)
+	#     return super().__str__()
 
+	def __str__(self):
+		# print("S S S",len(self.keys()), self.keys())
+		if "value" in self and len(self.keys()) == 1:
+			# print(" VLAST ",str(self.value))
+			x,y = '\"','\\"'
+			if isinstance(self.value, str) and ("'" in self.value or '"' in self.value):
+				# print("EEEEEEEEEEEEEEEEEE",self.value,)
+				# print("EEEEEEEEEEEEEEEEEe",self.value.replace(x,y),)
+				return f'"{self.value.replace(x,y)}"'
+			elif isinstance(self.value, str):
+				# print("eeeeeeeeee",self.value,)
+				return f'"{self.value}"'
+			 
+			# # print(" VLAST ")
+			# # if isinstance(self.value, str):
+			# if type(self.value)== str:
+			#     # f,r = "'",'\''
+			#     # return f"\'{self.value.replace(f,r)}\'"
+			#     print("vvvvvvvvvvvvvvvvvvvvvvv",self.value,":::",str(self.value))
+			#     # return f"'{self.value}'"
+			#     if "'" in self.value or '"' in self.value:
+			#         print("AAAAAAAAAAAAAAAAAAAAAAAA")
+			#         r,p,e= "\'","\\'",""
+			#         r2,p2,e= "\"",'\\"',""
+			#         f,pf = """\\"""+"""\\""","""\\"""
+			#         res = f"""\"{(e+self.value).replace(r,p).replace(r2,p2).replace(f,p)}\""""
+			#         print("RRRR:",res)
+			#         return res
+			#     print("BBBBBBBBBBBBBBBBBBBBBBBB")
+			#     return f'"{self.value}"'
+			#     # return str(f"""'''{self.value}'''""")
+			# print("CCCCCCCCCCCCCCCCCCCCCCC")
+			return str(self.value)
+			return str(self.value)
+		# return super().__str__()
+		# print("DDDDDDDDDDDDDDDDDDD")
+		# return "{"+""", """.join((f"""{repr(key)}: {type(self)(val) if type(val) == dict else val}""") for key, val in self.items())+"}"
+		# return "{"+", ".join((f"\'{key}\': {val}") for key, val in self.items())+"}"
+		return "{"+", ".join((f"\"{key}\": {val}") for key, val in self.items())+"}"
 
+import time
 def testing():
 	bi = xoBenedict()
+	t = time.time()
 	bi.a.b.c = "yooooooooooooooo'\""
 	bi.a.b.c.d = 444444444
-	print(bi)
+	# bi.awesome.nice.abc.a.b.c.d.e.f.g
+	# print(bi)
 	bi.awesome.nice = "cool"
+	# t = time.time()
 	bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
-	print(bi)
 	
+	# print(bi)
+	print(":::",time.time()-t)
+	t = time.time()
+	bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
+	print(":::",time.time()-t)
+	t = time.time()
+	bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
+	print(":::",time.time()-t)
 	bx = xoBenedict()
 	bx.a.b = 3
-	print(bx)
+	# print(bx)
 	# bi2 = xoBenedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
 	# print(bi2)
 	
 	# bi.a.b.c.set(3).d.set(4).e(5).f.set(6).g("777").set("h",888).set(7777, HH = "1000000000000000").HH.awesome.set(11111)
-	# print(bi)
+	print(bi)
 
 if __name__ == '__main__':
 	testing()
