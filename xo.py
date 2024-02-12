@@ -1,6 +1,7 @@
 import ast
 from benedict.dicts.io import IODict
 from benedict.dicts.keyattr import KeyattrDict
+from benedict.dicts.base import BaseDict
 # from benedict.dicts.keylist import KeylistDict
 from benedict.dicts.keypath import KeypathDict
 from benedict.dicts.parse import ParseDict
@@ -16,30 +17,50 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	_root = None
 	_isRoot = False
 	_id:str = "yyy"
-	
+	_type:type = benedict
+
 	ignore_keys = ['_override','keyattr_dynamic', 'keyattr_enabled','keypath_separator','check_keys']
 	def __init__(self,*args, **kwargs):
 		"""
 		Constructs a new instance.
 		"""
+		self._type = type(self)
 		if xoBenedict._root is None:
 			xoBenedict._root = self
 			self._isRoot = True
 		else:
 			self._root = xoBenedict._root
+
 		
+		self._isRoot = True
+		
+		namespace = self._type.__name__
+		if self._isRoot and len(args) >= 1 and isinstance(args[0],str):
+			namespace = args[0]
+			newArgs = list(args);newArgs.remove(args[0])
+			args = newArgs
+		else:
+			print("XXXXX",self._isRoot, args )
 		nid = None
-		print("iiiiiiiiiiiiiiii",args,kwargs)
+		# print("iiiiiiiiiiiiiiii",args,kwargs)
 		if "_id" in kwargs:
 			nid = kwargs.pop("_id")
-		print("_IDIDIDID", nid, "param")
+		# print("_IDIDIDID", nid, "param")
 		# print("_IDIDIDID", nid, "param",_id)
 		if nid:
 			self._id = nid
+			self._isRoot = False
 		else:
 			# self._id = str(_id)
-			self._id = "ROOT"
-		print(":::",self._id)
+			# self._id = self._type.__name__
+			self._id = namespace
+		# print("iiiiiiiiiiiiiiii",self._id, ":::",args,":::",kwargs)
+		new = "Root" if self._isRoot else "new" 
+		
+		print(f"::: Creating {new} {namespace} with ID:",self._id, ":::",args,":::",kwargs)
+		if len(args)==1:
+			print("TTTTTTTTTT",type(args[0]))
+		# print(":::",self._id)
 		
 
 		global counter
@@ -260,31 +281,85 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 	#TODO update and constructor of dicts, final value as obj
 
-
+	def __contains__(self, q, *args, **kwargs):
+		# print("QQQQQQQQQQQQ",q)
+		return super().__contains__(q,*args, **kwargs)
 	
-	def __getitem__(self, key):
+	def __getitem__(self, key, *args, **kwargs):
 		
 		# if key not in self.__dict__:
 		# getKeys = True
-		# if key == "keys":
-		# 	print("XXXXXXXXXXXX")
-		# if key not in self.keys():
-		if key not in self.__dict__:
-			res = self._cast(super().__getitem__(key), key = self._id+"."+key)
+		# print("GGGGGGGGGG",self._id,key)
+		if key == "keys":
+			pass
+			# print("XXXXXXXXXXXX")
+		if key in self.keys():
+			# print("YES")
+			target = KeypathDict.__getitem__(self,key)
+			# print("TARGET",type(target))
+			if isinstance(target, type(self)):
+				print("YES FASTTTTTTTTTTTT",)
+				return target
+			if False and isinstance(target,dict):
+				print("FAST DICT")
+				return target
+			if isinstance(target, dict):
+				print("YES SLOWWWWWWWWWWWWW",type(target), "_type" in target, target)
+				return self._cast(target, key = key)
+			return target
+		# if key in self._dict:
+		# 	print("YES2")
+		# if key not in self.__dict__:
+		if key not in self.keys() and key not in self.__dict__:
+			# res = self._cast(super().__getitem__(key), key = self._id+"."+key)
+			# res = self._cast(super().__getitem__(key), key = key)
+			# print("again")
+			target = KeypathDict.__getitem__(self,key)
+			print("TARGET",type(target))
+			res = self._cast(target, key = key)
+			# print("againx2")
 			# print("WORKING !!!!!!!!!!!!")
 			self.__dict__[key] = res
 			return res
-		if key in self.__dict__ and isinstance(self[key],type(self)):
-			print("skip!")
-			return dict(self).__getitem__(key)
+		# if key in self.__dict__ and isinstance(self[key],type(self)):
+		# 	print("skip!")
+		# 	return dict(self).__getitem__(key)
+		# print("again 3")
+		# print("again 3")
+		# print("again 3")
+		target = KeypathDict.__getitem__(self,key)
+		if not isinstance(target, type(self)):
+			print("TARGET",type(target))
+			# return target
+			f = self._cast(target, key = key)
+			# KeypathDict.__setitem__(self, key, f)
+			return f
+		else:
+			print("SKKKKKKKKKKKKK")
+			print("SKKKKKKKKKKKKK")
+			print("SKKKKKKKKKKKKK")
+			print("SKKKKKKKKKKKKK")
+			print("SKKKKKKKKKKKKK")
+			return target
 		return super().__getitem__(key)
 
+	def items(self, fast = False):
+		# for key, value in BaseDict.items(self):
+		for key, value in BaseDict.items(self):
+			
+			# print("i",key,type(value))
+			if fast:
+				# print("FAST")
+				yield (key, value)
+			else:
+				print("SLOW", type(value))
+				yield (key, self._cast(value, key = key))
 
-    # def __getitem__(self, key):
-    #     return self._cast(super().__getitem__(key), key = self._id+key)
+	# def __getitem__(self, key):
+	#     return self._cast(super().__getitem__(key), key = self._id+key)
 
-    # def __setitem__(self, key, value):
-    #     return super().__setitem__(key, self._cast(value))
+	# def __setitem__(self, key, value):
+	#     return super().__setitem__(key, self._cast(value))
 
 	def set(self,*args, **kwargs):
 		# print("SSSSSSSSSSSSSSSSS",)
@@ -325,14 +400,40 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		
 		obj_type = type(self)
 		# obj_type()
-		print("set KKKKKKKK",key)
-		if key != "value" and not isinstance(value, dict) and not isinstance(value, obj_type) and not skip:
-			print("111111111111", value)
+		# print("set KKKKKKKK",key)
+		if key != "value" and not isinstance(value, dict) and not isinstance(value, obj_type):# and not skip:
+			print("111111111111", self._id,key, value)
 			
 			# value = obj_type({"value":value}, keyattr_dynamic=True, _parent = self)
-			print("NEXT:",self._id+"."+key)
-			value = xoBenedict({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
-			print("set 22222222222", value)
+			# print("NEXT:",self._id+"."+key)
+			# value = xoBenedict({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+			if key in self:
+				print()
+				print(key in self,"$$$$$$$$$$$")
+				print("!!!!!!",super().__getattribute__(key)._type)
+				print("$$$$$$$$$$$$$$$$")
+				print()
+				# if isinstance(self[key],type(self)):
+				# if isinstance(self[key],type(self)):
+				if super().__getattribute__(key)._type == type(self):
+					# print(isinstance(self[key],type(self)),"$$$$$$$$$$$")
+					print("%%%%%%%%%%%%%%%%%%%%")
+					if value != None and not skip:
+						# pass
+						self[key].value = value
+						value = self[key]
+						return value
+					if skip:
+						if super().__getattribute__(key)._type == type(self):
+							print("BINGO!!!!!!!!!!!!!!!!!!!!!!!!")
+							super().__getattribute__(key).value = value
+						return super().__getattribute__(key)
+				else:
+					print("XXXXXXXXXXXX",type(self[key]))
+					value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+			else:
+				value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
 			# print("value", value)
 			# print("key", key)
@@ -342,32 +443,37 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					# self.__dict__[key] = value
 					self.__dict__[key] = self[key]
 				else:
+					print("##################",type(value))
 					self[key].update(value)
-					for k in value:
+					# for k in value:
+					# 	print("##################",type(value[k]))
 						# self[key].__dict__.update(value)
 						# self[key].__dict__[k]=value[k]
 						# self[key].__dict__[k]=self[key][k]
 						# self.__dict__[key].__dict__[k]=self[key][k]
-						pass
+						# pass
 					# self[key].__dict__.update(value)
 					# self[key].__dict__.update(value)
 				return self[key]
 			else:
-				print("key",key,"type",type(value),"value",value)
+				# print("key",key,"type",type(value),"value",value)
+				pass
 				# self.__dict__[key] = value
 				# self[key] = value
 				# res = super().__setitem__(key, value)
-				print("222222222222222@@@@@@@@@@@@@@@@@22")
+				# print("222222222222222@@@@@@@@@@@@@@@@@22")
 				# res = self.__setitem__(key, value, skip = True)
 				# res = self.__setitem__(key, value, skip = True)
 				# self.__dict__[key] = self[key]
 				# return res
 				# return self[key]
 		if True:
-			print("set 3333333", value, key, )
-			print(key in self,"!!!!!!!!!!!!", type(value))
+			# print("set 3333333", value, key, )
+			# print(key in self,"!!!!!!!!!!!!", type(value))
 			if isinstance(value, dict) and not isinstance(value, type(self)):
-				value = self._cast(value, key = self._id+"."+key)
+				# value = self._cast(value, key = self._id+"."+key)
+				# print("DOUBLE??????????")
+				value = self._cast(value, key = key)
 			# self.__dict__[key]=f
 			# return f
 			# res = super().__setitem__(key, f)
@@ -376,7 +482,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# 	return super().__getitem__(key)
 			res = super().__setitem__(key, value)
 			self.__dict__[key]=value
-			print(key in self,"!!!!!!!!!!!!")#, type(self.__dict__[key]))
+			# print(key in self,"!!!!!!!!!!!!")#, type(self.__dict__[key]))
 		# if isinstance(value, dict):
 		# 	for k in value:
 		# 		# self[key].__dict__[k] = self[key][k]
@@ -414,7 +520,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		"""
 		# print("Cast", self)
 		obj_type = type(self)
-		print("oooooooo",obj_type,key)
+		# print("oooooooo",obj_type,key, type(value),value)
 		if isinstance(value, dict) and not isinstance(value, obj_type):
 			data = {"keyattr_enabled":self._keyattr_enabled,
 				"keyattr_dynamic":self._keyattr_dynamic,
@@ -424,14 +530,20 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# 	data["_id"] = key
 			
 			# return obj_type(
-			return xoBenedict(
-				value,_id = key,
+			target = self._id if key is None else self._id+"."+key
+			# print("TTTTTTTT:",target)
+			# return xoBenedict(
+			return obj_type(
+				# value,_id = self._id+"."+key,
+				value, _id = target,
 				**data
 				# _parent = self,
 			)
 		elif isinstance(value, list):
 			for index, item in enumerate(value):
-				value[index] = self._cast(item)
+				f = self._cast(item)
+				f._id = self._id+"."+key+"."+str(index)
+				value[index] = f
 		# final = obj_type(
 		#         {"value":value},
 		#         keyattr_enabled=self._keyattr_enabled,
@@ -888,6 +1000,52 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("DDDDDDDDDDDDDDDDDDD")
 		# return "{"+""", """.join((f"""{repr(key)}: {type(self)(val) if type(val) == dict else val}""") for key, val in self.items())+"}"
 		# return "{"+", ".join((f"\'{key}\': {val}") for key, val in self.items())+"}"
+		# fastItems = {k:v for k,v in self.items(fast = True)}
+		# def changeReq(d):
+		# 	if type(d) == dict:
+		# 		for k,v in d.items():
+		# 			if type(v) == dict:
+		# 				if len(v.keys()) == 1 and "value" in d:
+		# 					return d["value"]
+		# 				return {kk:changeReq(vv) for kk,vv in v}
+		# 			return {k:v}
+			# return {k:changeReq(v) for k,v in d.items()}
+			# if type(d) == dict:
+			# 	for k in d:
+			# 		if len(d[k].keys()) == 1 and "value" in d:
+			# 			return d[k]["value"]
+			# 		yield {k:changeReq(v) for k,v in d.items()}
+			# return d
+		# fastItems = {k:v for k,v in changeReq(fastItems)}
+		# print("FFFF",fastItems)
+		# if len(fastItems.keys()) == 1:
+		# 	if and "value" in fastItems:
+		# 	return str(fastItems["value"])
+		# return "{"+", ".join((f"\"{key}\": {val}") for key, val in fastItems if len(key)>0 and key[0]!="_")+"}"
+		# return "{"+", ".join((f"\"{key}\": {val}") for key, val in self.items(fast = True) if len(key)>0 and key[0]!="_")+"}"
+		result = {}  # Start with an empty dictionary to store the key-value pairs
+
+		# Iterate over each key-value pair in self.items()
+		for key, val in self.items(fast=True):
+			# Check if the key is not empty and doesn't start with "_"
+			if len(key) > 0 and key[0] != "_":
+				# Add the key-value pair to the result dictionary
+				if isinstance(val,dict) and "value" in val and len(val)==1:
+					# print("@@@@@@@@@@@@@@@@",val["value"])
+					result[key] = val["value"]
+				else:
+					# print(":::",val)
+					result[key] = val
+
+		if "value" in result:
+			val = result.pop("value")
+			result = {"value":val,**result}
+
+		# Convert the dictionary to a JSON-like string
+		output = "{" + ", ".join(f"\"{key}\": {val}" for key, val in result.items()) + "}"
+
+		# Return the JSON-like string
+		return output
 		return "{"+", ".join((f"\"{key}\": {val}") for key, val in self.items() if len(key)>0 and key[0]!="_")+"}"
 
 	def to_csv(self, key="values", columns=None, columns_row=True, **kwargs):
@@ -929,8 +1087,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		A ValueError is raised in case of failure.
 		"""
 		D = self.dict()
-		# print("jjjjjjjjjjjjjj",self)
-		# print("dddddddddddddd",D)
+		print("jjjjjjjjjjjjjj",self)
+		print("dddddddddddddd",D)
 		def dictOrValue(D):
 			if isinstance(D,dict):
 				if len(D) == 1 and "value" in D:
@@ -967,6 +1125,26 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			return self._parent._getRoot()
 		return self
 
+	def __getattr__(self, attr):
+		# print("UUUUUUUUUUUUUUUUUUUUUUUUU")
+		attr_message = f"{self.__class__.__name__!r} object has no attribute {attr!r}"
+		if not self._keyattr_enabled:
+			raise AttributeError(attr_message)
+		try:
+			if attr not in self and "value" in self and isinstance(self.value,object) and attr in self.value.__dir__():
+				return self.value.__getattribute__(attr)
+			return self.__getitem__(attr)
+		except KeyError:
+			if attr.startswith("_"):
+				raise AttributeError(attr_message) from None
+			if not self._keyattr_dynamic:
+				raise AttributeError(attr_message) from None
+			# self.__setitem__(attr, {})
+
+			self.__setitem__(attr, type(self)(_id = self._id+"."+attr))
+			# self.__setitem__(attr, xoBenedict())
+			return self.__getitem__(attr)
+
 
 class xoEvents(xoBenedict):
 	def __init__(self, *args, **kwargs):
@@ -976,11 +1154,11 @@ class xoEvents(xoBenedict):
 		# self.__dir__ = self.keys
 		# self.__dir__ = self.keys
 	def __getitem__(self, key, *args, **kwargs):
+		print("Getting", key)
 		res = super().__getitem__(key, *args, **kwargs)
 		# if key == '__dir__':
 		# 	# return res without keys ['ignore','_pointer','_dict']
 		# 	return {k:v for k,v in res.items() if k not in ['ignore','_pointer','_dict']}
-		print("Getting", key)
 		return res
 	def __setitem__(self, key, value, *args, **kwargs):
 		if "_id" in kwargs:
@@ -1039,7 +1217,8 @@ def getArgsFromEnv(defaultHost = host, defaultPort = port):
 host, port = getArgsFromEnv(host, port)
 from redis import Redis as RedisClient
 
-class xoRedis(xoEvents):
+# class xoRedis(xoEvents):
+class xoRedis(xoBenedict):
 	_host = host
 	_port = port
 	_db = 0
@@ -1050,6 +1229,11 @@ class xoRedis(xoEvents):
 	_pubsub = None
 	_binded = None
 	_live = None
+	_clients = {}
+
+	def new(self,*args, **kwargs):
+		#TODO: Clear memory of current instance
+		return type(self)(*args,**kwargs)
 	def __init__(self, *args, **kwargs):
 		self._host = kwargs["host"] if "host" in kwargs else host
 		self._port = kwargs["port"] if "port" in kwargs else port
@@ -1073,16 +1257,29 @@ class xoRedis(xoEvents):
 				kwargs["db"] = self._db
 			# self._redis = RedisClient(host=self._host, port=self._port, db=self._db)
 			# self._redis = RedisClient(**kwargs)
-			try:
-				print("CONNECTING")
-				self._redis = RedisClient(**kwargs)
-				success = self._redis.ping()
-				if not success:
-					print(f"Failed to connect to Redis at {self._host}:{self._port}")
-			except Exception as e:
-				# print(f"Failed to connect to Redis at {self._host}:{self._port} with error: {e.}")
-				print(f"Failed to connect to Redis at {self._host}:{self._port} with error")
-			
+			client_address = str(kwargs["host"])+":"+str(kwargs["port"])+"@"+str(kwargs["db"])
+			if client_address not in xoRedis._clients:
+				try:
+					print(f"::: Connecting to {client_address}",kwargs)
+					self._redis = RedisClient(**kwargs)
+					xoRedis._redis = self._redis
+					success = self._redis.ping()
+					if not success:
+						print(f"Failed to connect to Redis at {self._host}:{self._port}")
+					xoRedis._clients[client_address] = self._redis
+				except Exception as e:
+					# print(f"Failed to connect to Redis at {self._host}:{self._port} with error: {e.}")
+					print(f"Failed to connect to Redis at {self._host}:{self._port} with error")
+			else:
+				print(f"::: Already connected to {client_address}")
+				self._redis = xoRedis._clients[client_address]
+
+		else:
+			# print("__FETCHING ON CREATION!!!!!",self._id)
+			# self.__call__()
+			self.value = self.fetchRedis()
+			# print("__FETCHING DONE",self._id)
+			# print("__PRINTING DONE_____________")
 		
 		self._binded = False
 		self._live = False
@@ -1101,42 +1298,125 @@ class xoRedis(xoEvents):
 			# print(f"Failed to connect to Redis at {self._host}:{self._port} with error: {e.}")
 			print(f"Redis is not connected")
 			return False
-		
-	def __getitem__(self, key, *args, **kwargs):
-		res = super().__getitem__(key, *args, **kwargs)
+
+
+	def fetchRedis(self,*args, **kwargs):
+		# print("::: Fetching ",self._id, res)
+		print("::: Fetching ",self._id)
+		res = self._root._redis.get(self._id)
+		if res:
+			res = pk.loads(res)
+			gotRes = True
+			return res
+		else:
+			print("::: No Matching:",self._id)
+		return 
+			# ex
+
+	def __call__(self,*args, **kwargs):
+		if len(args) == 0:
+			res = self.fetchRedis()
+			print("MATCH:",res==self)
+			if res and res != self:
+				print("Adding...",res)
+				self(res, *args, **kwargs)
+			# return res
+			return self
+		return super().__call__(*args,**kwargs)
+
+	def __getitem__(self, key,  *args, **kwargs):
+		print("XGetting", key)
+		# print("@@@@@@@@@@@@@@", key in self)
+		if key == "value" or key not in self:
+			res = super().__getitem__(key, *args, **kwargs)
+		else:
+			res = super().__getattribute__(key)
+			
+		# print("2@@@@@@@@@@@@@@")
+		if isinstance(res,type(self)) or isinstance(res,xoBenedict):
+			# print("When New")
+			# print("3@@@@@@@@@@@@@@")
+			# print("XGetting got", res._id,key)
+			return res
+		else:
+			# print("When Existing")
+			# print("4@@@@@@@@@@@@@@")
+			# print("GOT VALUE",type(res))
+			return res
 		# if key == '__dir__':
 		# 	# return res without keys ['ignore','_pointer','_dict']
 		# 	return {k:v for k,v in res.items() if k not in ['ignore','_pointer','_dict']}
+		fkey = self._id+"."+key
 		if "value" == key:
-			print("XGetting", key)
+			fkey = self._id
+		if "value" == key or "value" in res:
+			print("XFetching", fkey)
 			gotRes = False
-			try:
+			# try:
+			# try:
+			if True:
 				r = self._root._redis
-				res = r.get(self._id)
+				res = r.get(fkey)
+				print("RRRRRRESSSSSSSSS",fkey, res)
 				res = pk.loads(res)
 				gotRes = True
-			except:
-				print(" - - - COULD NOT UNPICKLE", self._id, ":::", res)
+			# except:
+				# print(" - - - COULD NOT UNPICKLE", self._id, ":::", res)
 			if gotRes and res != None:
 				print("SHOULD SET",key, "TO", res)
-				self.value = res
+				# self.value = res
 			# self._setValue(res, skipUpdate = True)
-		print("ffffffffffff")
+		print("ffffffffffff",type(res))
 		return res	
 		return res
-	def __setitem__(self, key, value, *args, **kwargs):
-		if key == "value" and value != self:
-			if value is not None:
-				print("XSetting", key, "to", value)
-				val = pk.dumps(value)
-				r = self._root._redis
-				res = r.set(self._id, val)
-				r.publish(self._id, val)
-		# if isinstance(value, type(self)):
-		# 	value._id = str(self._id)+str(key)
+	
+	
+		
 
-		res = super().__setitem__(key, value, *args, **kwargs)
-		return res
+	def __setitem__(self, key, value, *args, **kwargs):
+		skip = False
+		print("XSetting", self._id+"."+key, "to",type(value),)# value,)
+		r = self._root._redis
+		if key == "value":
+			val = pk.dumps(value)
+			if  value == self:
+				# print("RRRRRRRRRRRRRRRRRRR333333333",r,self._id,val)
+				# res = r.set(self._id, val)
+				# r.publish(self._id, val)
+				return
+			if value is not None:
+				pass
+				# print("RRRRRRRRRRRRRRRRRRR2222222",r,self._id,val)
+				# res = r.set(self._id, val)
+				# r.publish(self._id, val)
+			# else:
+
+		# 	value._id = str(self._id)+str(key)
+		# if isinstance(value, type(self)):
+		else:
+			# print("{{{{{{{{{{{-----")
+			# if (key not in self or self[key] != value) and not isinstance(value, dict):
+			if not isinstance(value, dict):
+				val = pk.dumps(value)
+				print("RRRRRRRRRRRRRRRRRRR1111111",isinstance(value, dict),value,self._id+"."+key,val)
+				res = r.set(self._id+"."+key, val)
+				r.publish(self._id+"."+key, val)
+				skip = True
+			else:
+				if type(value) == dict:	print("is dict passing?",type(value),self._id+"."+key)
+			# print("-----}}}}}}}}}}}")
+			# print("nv",self._id+"."+key,"T:",type(value))
+		# if value is None:
+		# 	value = [None]
+		if value != None:
+			res = super().__setitem__(key, value, skip = skip, *args, **kwargs)
+			return res
+		else:
+			if key == "value":
+				# self.value = None
+				pass
+			else:
+				self[key].value = None
 
 
 
@@ -1169,9 +1449,13 @@ def testing():
 		print(":::",time.time()-t)
 
 
-xo = xoBenedict()
-print("......................")
-xo.a.b.c = 3
+# xo = xoBenedict()
+# xo.a.b = 2
+# print("......................")
+# print(xo.a)
+# xo.a.b.c.d.e.f = 3
+# print(xo.a.b.c.d.e._id)
+# print(xo.a.b.c.d.e)
 # xo.a.b = 2
 	# print(bx)
 	# bi2 = xoBenedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
@@ -1179,6 +1463,16 @@ xo.a.b.c = 3
 	
 	# bi.a.b.c.set(3).d.set(4).e(5).f.set(6).g("777").set("h",888).set(7777, HH = "1000000000000000").HH.awesome.set(11111)
 
+
+# xo = xoRedis()
+# print("Ready")
+# # xo.a.b.c.d.e = 5555555
+# xo.a.b = 2
+# print("DONE")
+# # xo.a = 1
+# print(xo)
+# print("FINISH")
+# print("GOODBYE")
 if __name__ == '__main__':
 	testing()
 
