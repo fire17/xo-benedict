@@ -298,7 +298,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# print("XXXXXXXXXXXX")
 		if key in self.keys():
 			# print("YES")
-			target = KeypathDict.__getitem__(self,key)
+			try:
+				target = KeypathDict.__getitem__(self,key)
+			except:
+				target = super().__getitem__(key)
+
 			# print("TARGET",type(target))
 			if isinstance(target, type(self)):
 				print("YES FASTTTTTTTTTTTT",)
@@ -317,7 +321,21 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# res = self._cast(super().__getitem__(key), key = self._id+"."+key)
 			# res = self._cast(super().__getitem__(key), key = key)
 			# print("again")
-			target = KeypathDict.__getitem__(self,key)
+			try:
+				# time.sleep(0.1)
+				# target = KeypathDict.__getitem__(self,key)
+				target = KeypathDict.__getitem__(self,key)
+				# target = super().__getitem__(key)
+				print("YOOOOOOOOOOOOOxxxxxx")
+			except:
+				print("YOOOOOOOOOOOOO",self._id,key)
+				
+				target = super().__getitem__(key)
+				# try:
+				# # target = super().__getitem__(key)
+				# except:
+				# 	# target = KeypathDict.__getitem__(self,key)
+				# 	target = self.__getitem__(key)
 			print("TARGET",type(target))
 			res = self._cast(target, key = key)
 			# print("againx2")
@@ -418,7 +436,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# print()
 				# if isinstance(self[key],type(self)):
 				# if isinstance(self[key],type(self)):
-				if super().__getattribute__(key)._type == type(self):
+				if self[key]._type == type(self):
+				# if super().__getattribute__(key)._type == type(self):
 					# print(isinstance(self[key],type(self)),"$$$$$$$$$$$")
 					# print("%%%%%%%%%%%%%%%%%%%%")
 					if value != None and not skip:
@@ -439,6 +458,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
 			else:
 				value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+				print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
 			# print("value", value)
@@ -537,7 +557,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			
 			# return obj_type(
 			target = self._id if key is None else self._id+"."+key
-			# print("TTTTTTTT:",target)
+			print("TTTTTTTT:",target)
 			# return xoBenedict(
 			return obj_type(
 				# value,_id = self._id+"."+key,
@@ -1194,7 +1214,7 @@ class xoEvents(xoBenedict):
 		return list(set(super().__dir__()) - set(ignore))
 	
 
-
+import traceback
 
 defaultRedisConfig = {
 	# "host" : "0.0.0.0",
@@ -1346,7 +1366,35 @@ class xoRedis(xoBenedict):
 						pass
 					'''
 					print("@@@@@@@@@@@ UPDATING ",channel, str(res)[:40] + '...' if len(str(res)) > 40 else str(res))
-					# self[channel] = res
+					if channel not in self:
+						# self[channel] = res
+						# self[channel] = res
+						self.__setitem__(channel, res , doubleSkip = True)
+					if channel in self:
+						if channel not in self:
+							print("Creating!!!!!!!!!!!! ",channel)
+							done = False
+							while not done:
+								try:
+									print(self[channel])
+									done = True
+								except:
+									traceback.print_exc()
+									print("Failed",channel,self._id,self)
+									time.sleep(1)
+							print("Creating!!!!!!!!!!!! xxx")
+						t = self
+						l = len(channel.split("."))
+						co = 0
+						for c in channel.split("."):
+							print("cccccc",c)
+							if l-co == 1: channel = c
+							# else:t = t[c]
+							else:t = t.__getitem__(c)
+							co+=1
+						print("\nUUUUUUUUUUUU",t._id,channel)
+						t.__setitem__(channel, res)
+					# self.__setitem__(channel, res)
 					pass
 						# xoRedis.__setitem__(target, key ,res)
 					# print("@@@@@@@@@@@3 UPDATING ",channel)
@@ -1416,7 +1464,19 @@ class xoRedis(xoBenedict):
 		else:
 			# print("__FETCHING ON CREATION!!!!!",self._id)
 			# self.__call__()
-			self.value = self.fetchRedis()
+			found = None
+			if len(args)>0 and isinstance(args[0], dict) and "value" in args[0]:
+				found = args[0]["value"]
+			elif "value" in kwargs:
+				found = kwargs["value"]
+			if found == None:
+				print("121212121212")
+				print("121212121212")
+				print("121212121212")
+				self.value = self.fetchRedis()
+			else:
+				print("SKIPPING FETCHING")
+				self.value = found
 			# print("__FETCHING DONE",self._id)
 			# print("__PRINTING DONE_____________")
 		
@@ -1454,6 +1514,9 @@ class xoRedis(xoBenedict):
 
 	def __call__(self,*args, **kwargs):
 		if len(args) == 0:
+			print("3434343434 call")
+			print("3434343434 call")
+			print("3434343434 call")
 			res = self.fetchRedis()
 			# print("MATCH:",res==self)
 			if res and res != self:
@@ -1469,7 +1532,11 @@ class xoRedis(xoBenedict):
 		if key == "value" or key not in self:
 			res = super().__getitem__(key, *args, **kwargs)
 		else:
-			res = super().__getattribute__(key)
+			# res = super().__getitem__(key, *args, **kwargs)
+			try:
+				res = super().__getattribute__(key)
+			except:
+				res = super().__getitem__(key, *args, **kwargs)
 			
 		# print("2@@@@@@@@@@@@@@")
 		if isinstance(res,type(self)) or isinstance(res,xoBenedict):
@@ -1556,13 +1623,13 @@ class xoRedis(xoBenedict):
 		# if value is None:
 		# 	value = [None]
 		if value != None:
-			print("#######################",key, doubleSkip)
+			print("#######################",self._id,key, doubleSkip)
 			# if key not in self or key == "value":
 			res = super().__setitem__(key, value, skip = skip, *args, **kwargs)
 			# print("#######################END")
 			print(f"::: Key {self._id}.{key} Updated: {str(value)[:40] + '...' if len(str(value)) > 40 else str(value)}")
 			# res = self[key]
-			res = self
+			# res = self[key]
 			#xxx
 			return res
 			return
@@ -1621,6 +1688,9 @@ def testing():
 
 # xo = xoRedis()
 # print("Ready")
+# while(True):
+# 	time.sleep(1)
+# 	print("...")
 # # xo.a.b.c.d.e = 5555555
 # xo.a.b = 2
 # print("DONE")
