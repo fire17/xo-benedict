@@ -1251,11 +1251,12 @@ class xoRedis(xoBenedict):
 	_rootName = "root"
 	_namespace = "namespace"
 	# _parent = None
-	_redis = None
+	_redis:RedisClient = None
 	_pubsub = None
 	_binded = None
 	_live = None
 	_clients = {}
+	_root:xoBenedict
 
 	def new(self,*args, **kwargs):
 		#TODO: Clear memory of current instance
@@ -1370,6 +1371,8 @@ class xoRedis(xoBenedict):
 						# self[channel] = res
 						# self[channel] = res
 						self.__setitem__(channel, res , doubleSkip = True)
+						pass
+					
 					if channel in self:
 						if channel not in self:
 							print("Creating!!!!!!!!!!!! ",channel)
@@ -1477,6 +1480,8 @@ class xoRedis(xoBenedict):
 			else:
 				print("SKIPPING FETCHING")
 				self.value = found
+				
+
 			# print("__FETCHING DONE",self._id)
 			# print("__PRINTING DONE_____________")
 		
@@ -1530,6 +1535,7 @@ class xoRedis(xoBenedict):
 		# print("XGetting", key)
 		# print("@@@@@@@@@@@@@@", key in self)
 		if key == "value" or key not in self:
+			
 			res = super().__getitem__(key, *args, **kwargs)
 		else:
 			# res = super().__getitem__(key, *args, **kwargs)
@@ -1576,8 +1582,22 @@ class xoRedis(xoBenedict):
 		return res	
 		return res
 	
-	
-		
+	_lastPub = {}
+
+	def _safePublish(self, key, val, *args, **kwargs):
+		if key not in self._root._lastPub or val != self._root._lastPub[key]:
+			self._root._lastPub[key] = val
+			print("::: Publishing safely.....",key)
+			# if key == "value":
+			r = self._root._redis
+			val = pk.dumps(val)
+			# res = r.set(self._id, val)
+			r.publish(key, val)
+			print("!!!!!!!!!!!!!! PUBLISHED", key, val)
+			print(self._root._lastPub)
+			print("*************** PUBLISHED", key, val)
+		else:
+			print("......skiping same publish..........",key)
 
 	def __setitem__(self, key, value, doubleSkip = False, *args, **kwargs):
 		skip = False
@@ -1587,14 +1607,15 @@ class xoRedis(xoBenedict):
 			val = pk.dumps(value)
 			if  value == self and not doubleSkip:
 				# print("RRRRRRRRRRRRRRRRRRR333333333",r,self._id,val)
-				# res = r.set(self._id, val)
+				res = r.set(self._id, val)
 
 
-				# print("XXXXX333333:",self._id)
+				print("XXXXX333333:",self._id)
+				self._safePublish(self._id, value)
 				# r.publish(self._id, val)
-				# return
+				return
 				pass
-			elif value is not None and not doubleSkip:
+			elif value is not None:# and not doubleSkip:
 				pass
 				print("RRRRRRRRRRRRRRRRRRR2222222",r,self._id,val)
 				res = r.set(self._id, val)
