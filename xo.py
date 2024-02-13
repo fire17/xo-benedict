@@ -9,8 +9,12 @@ from benedict import benedict#, KeyattrDict, KeypathDict, IODict, ParseDict
 # b = benedict()
 import dill as pk
 
+debug = False
+funMode = True # send keys to others, even if they dont have them yet
 
 counter =0
+
+
 
 class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	# _benedict = benedict()
@@ -60,7 +64,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("iiiiiiiiiiiiiiii",self._id, ":::",args,":::",kwargs)
 		new = "Root" if self._isRoot else "new" 
 		
-		print(f"::: Creating {new} {namespace} with ID:",self._id, ":::",args,":::",kwargs)
+		if debug:
+			print(f"::: Creating {new} {namespace} with ID:",self._id, ":::",args,":::",kwargs)
 		# if len(args)==1:
 		# 	print("TTTTTTTTTT",type(args[0]))
 		# print(":::",self._id)
@@ -264,7 +269,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	def __call__(self,*args, **kwargs):
 		# print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL")
 		if "value" in self and "function" in str(type(self["value"])):
-			return self["value"](*args, **kwargs)
+			# return self["value"](*args, **kwargs)
+			f = self.value
+			# print(":::::::::::::::",self._id,type(f),f, args, kwargs)
+			funcRes = f.__call__(*args, **kwargs)
+			return funcRes
 		else:
 			entries = type(self)(kwargs,_override=True, keyattr_dynamic=True)
 
@@ -289,6 +298,14 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		return super().__contains__(q,*args, **kwargs)
 	
 	def __getitem__(self, key, *args, **kwargs):
+		try:
+			return super().__getattribute__(key, *args, **kwargs)
+			# return res
+		except:
+			pass
+			res = super().__getitem__(key, *args, **kwargs)
+			return res
+			# res = super().__getitem__(key, *args, **kwargs)
 		
 		# if key not in self.__dict__:
 		# getKeys = True
@@ -349,8 +366,9 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("again 3")
 		# print("again 3")
 		target = KeypathDict.__getitem__(self,key)
-		if not isinstance(target, type(self)):
-			print("TARGET",type(target))
+		# if not isinstance(target, type(self)):
+		if not isinstance(target, xoBenedict):
+			print("CASTING TARGET",type(target))
 			# return target
 			f = self._cast(target, key = key)
 			# KeypathDict.__setitem__(self, key, f)
@@ -358,7 +376,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		else:
 			print("SKKKKKKKKKKKKK")
 			print("SKKKKKKKKKKKKK")
-			print("SKKKKKKKKKKKKK")
+			print("GOOD FIN SAME TYPE")#\nSKKKKKKKKKKKKK")
 			print("SKKKKKKKKKKKKK")
 			print("SKKKKKKKKKKKKK")
 			return target
@@ -417,8 +435,44 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# if res: return res;
 		return self
 
-	def __setitem__(self, key, value, skip = False, **kw):
+	def __setitemx__(self, key, value, skip = False, **kw):
+		# res = super().__setitem__(key, value)
+		# print("SSSSSSSSS",key,value,skip,kw)
+		if key == "value":
+			res = super().__setitem__(key, value)
+		else:
+			# if key inside self, set value
+			# if key not in self, cast new value
+			if key in self:
+				child =  self.__getattr__(key)
+				res = child.__setattr__("value",value)
+			else:
+				# res = super().__setitem__(key, self._cast(value, key = self._id+"."+key))
+				# res = super().__setitem__(key, self._cast(value, key = self._id+"."+key))
+				# res = super().__setitem__(key, self._cast(value, key = key))
+				# child = self
+				# child.value = value
+				# res = None
+				child = type(self)(_id = self._id+"."+key)
+				child.value = value
+				res = super().__setitem__(key,child)
 		
+		# print("SETTING",self._id,key)
+		return res
+
+	def __hash__(self):
+		return hash(super())
+		return hash(self._id)
+	
+	def __setitem__(self, key, value, skip = False, **kw):
+		# if key == "value" and not skip:
+		# if key == "value" or key.split(".")[-1] == "value":
+		# 	# return super().__setitem__(key, self._cast(value))
+		# 	return super().__setitem__(key, value)
+		# else:
+		# 	# return super().__setitem__(key+".value", self._cast(value))
+		# 	return super().__setattr__(key+".value", value)
+
 		obj_type = type(self)
 		# obj_type()
 		# print("set KKKKKKKK",key)
@@ -428,7 +482,9 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# value = obj_type({"value":value}, keyattr_dynamic=True, _parent = self)
 			# print("NEXT:",self._id+"."+key)
 			# value = xoBenedict({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
-			if key in self:
+			# if key in self:
+			# if key in self.keys():
+			if key in super().keys():
 				# print()
 				# print(key in self,"$$$$$$$$$$$")
 				# print("!!!!!!",super().__getattribute__(key)._type)
@@ -436,15 +492,22 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# print()
 				# if isinstance(self[key],type(self)):
 				# if isinstance(self[key],type(self)):
-				if self[key]._type == type(self):
+				# print("$$$$$$$$$$$$$$$$")
+				child =  self.__getattr__(key)
+				# print("$$$$$$$$$$$$$$$$")
+				if child._type == type(self):
 				# if super().__getattribute__(key)._type == type(self):
 					# print(isinstance(self[key],type(self)),"$$$$$$$$$$$")
 					# print("%%%%%%%%%%%%%%%%%%%%")
 					if value != None and not skip:
 						# pass
 						# print("HERERERERERE111111")
-						self[key].value = value
-						value = self[key]
+						# self[key].value = value
+						
+						child.__setattr__("value",value)
+						#child.value = value
+						# value = self[key]
+						pass
 						return value
 					if skip:
 						if super().__getattribute__(key)._type == type(self):
@@ -457,8 +520,10 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					# print("XXXXXXXXXXXX",type(self[key]))
 					value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
 			else:
-				value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
-				print("xxx finish quicker here")
+				# print("KKKK",type(key))
+				# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+				value = type(self)({"value":value}, _id = str(self._id)+"."+key, keyattr_dynamic=True)
+				# print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
 			# print("value", value)
@@ -538,12 +603,17 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	#     for key, value in super().items():
 	#         # yield (key, self._cast(value))
 	#         yield (key, value)
+	
 
 	def _cast(self, value, key = None):
 		"""
 		Cast a dict instance to a benedict instance
 		keeping the pointer to the original dict.
 		"""
+		if type(self) == type(value) or key == None:
+			return value
+		
+		if debug: print(f"{self._id=}.{key} CASTING :",type(value))
 		# print("Cast", self)
 		obj_type = type(self)
 		# print("oooooooo",obj_type,key, type(value),value)
@@ -557,7 +627,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			
 			# return obj_type(
 			target = self._id if key is None else self._id+"."+key
-			print("TTTTTTTT:",target)
+			# print("TTTTTTTT:",target)
 			# return xoBenedict(
 			return obj_type(
 				# value,_id = self._id+"."+key,
@@ -987,10 +1057,16 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	#     if self._pointer:
 	#         return str(self._dict)
 	#     return super().__str__()
-
+	def __len__(self):
+		# print("S S S",len(self.keys()), self.keys())
+		if "value" in self and len(self.keys()) == 1:
+			if "__len__" in self.value.__dir__(): return len(self.value)
+		return super().__len__()
+		
 	def __str__(self):
 		# print("S S S",len(self.keys()), self.keys())
 		if "value" in self and len(self.keys()) == 1:
+			return f'{self.value!r}'
 			# print(" VLAST ",str(self.value))
 			x,y = '\"','\\"'
 			if isinstance(self.value, str) and ("'" in self.value or '"' in self.value):
@@ -1058,10 +1134,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# Add the key-value pair to the result dictionary
 				if isinstance(val,dict) and "value" in val and len(val)==1:
 					# print("@@@@@@@@@@@@@@@@",val["value"])
-					result[key] = val["value"]
+					result[key] = f'{val["value"]!r}'
 				else:
-					# print(":::",val)
-					result[key] = val
+					print(":::",val)
+					# result[key] = val
+					result[key] = f'{val!r}'
 
 		if "value" in result:
 			val = result.pop("value")
@@ -1172,6 +1249,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			return self.__getitem__(attr)
 
 
+
+
 class xoEvents(xoBenedict):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -1179,8 +1258,9 @@ class xoEvents(xoBenedict):
 		# self.__class__.__dir__ = lambda self, *a, **kw: list(set(dir(self)) - set(ignore))
 		# self.__dir__ = self.keys
 		# self.__dir__ = self.keys
+		
 	def __getitem__(self, key, *args, **kwargs):
-		print("Getting", key)
+		print(f"Getting {self._id=}.+{key}", args, kwargs)
 		res = super().__getitem__(key, *args, **kwargs)
 		# if key == '__dir__':
 		# 	# return res without keys ['ignore','_pointer','_dict']
@@ -1247,6 +1327,7 @@ from redis import Redis as RedisClient
 class xoRedis(xoBenedict):
 	_host = host
 	_port = port
+	
 	_db = 0
 	_rootName = "root"
 	_namespace = "namespace"
@@ -1292,7 +1373,7 @@ class xoRedis(xoBenedict):
 	def _directBind(self, msg, *args, **kwargs):
 		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
 		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
-		print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu", msg, args, kwargs)
+		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu", msg, args, kwargs)
 		# time.sleep(1)
 		if isinstance(msg, dict) and "type" in msg:
 			if "message" in msg["type"]:
@@ -1300,7 +1381,7 @@ class xoRedis(xoBenedict):
 				channel = msg["channel"].decode() # .strip("Redis.")  # .split(".")[-1]
 				# if channel.startswith(xoRedis._rootName+"."):
 				# if channel.startswith(self._rootName+"/"):
-				print("ggggg", channel)
+				# print("ggggg", channel)
 				if channel.startswith(self._id+"."):
 					channel = ".".join(channel.split(".")[1:])  # .split(".")[-1]
 				# print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", msg, args, kwargs)
@@ -1314,7 +1395,7 @@ class xoRedis(xoBenedict):
 				# EDIT 1
 				# f = xo._GetXO(channel, allow_creation=True)
 				if True:
-					print("ggggg", channel)
+					# print("ggggg", channel)
 					# f = self._GetXO(channel, allow_creation=False)
 					# time.sleep(1)
 
@@ -1341,9 +1422,14 @@ class xoRedis(xoBenedict):
 					# f = xo[msg["channel"].decode().strip("xo/").replace("/", ".")]
 					# f[channel] = msg["data"]
 					# print("######  ", f)
+					# sender, res = msg["data"]
 					res = msg["data"]
 					try:
-						res = final = pk.loads(res)
+						sender, res = final = pk.loads(res)
+						# sender, res = final = pk.loads(res)
+						if sender == hash(self._root._redis):
+							# print("@@@@@@@@@@@@@@@ WORKING! SKIPPING SELF UPDATE", channel, "")
+							return 
 						# print("try res:",res)
 					except:
 						print(" - - - COULD NOT UNPICKLE", self._id, ":::", res)
@@ -1366,12 +1452,17 @@ class xoRedis(xoBenedict):
 						print("\n:::UUUUUUUUUUUUUUUUUUU Updating ",target._id+"."+key)
 						pass
 					'''
-					print("@@@@@@@@@@@ UPDATING ",channel, str(res)[:40] + '...' if len(str(res)) > 40 else str(res))
 					if channel not in self:
 						# self[channel] = res
 						# self[channel] = res
-						self.__setitem__(channel, res , doubleSkip = True)
-						pass
+						getKeysYouDontHaveAlready = False
+						if getKeysYouDontHaveAlready or funMode:
+							if debug or funMode: print("::: Updating (new)", channel, "=", str(res)[:40] + '...' if len(str(res)) > 40 else str(res))
+							self.__setitem__(channel, res , skip_publish = True)
+							pass
+						# else:
+						# 	print()
+						return
 					
 					if channel in self:
 						if channel not in self:
@@ -1384,19 +1475,19 @@ class xoRedis(xoBenedict):
 								except:
 									traceback.print_exc()
 									print("Failed",channel,self._id,self)
-									time.sleep(1)
+									# time.sleep(1)
 							print("Creating!!!!!!!!!!!! xxx")
 						t = self
 						l = len(channel.split("."))
 						co = 0
 						for c in channel.split("."):
-							print("cccccc",c)
+							# print("cccccc",c)
 							if l-co == 1: channel = c
 							# else:t = t[c]
 							else:t = t.__getitem__(c)
 							co+=1
-						print("\nUUUUUUUUUUUU",t._id,channel)
-						t.__setitem__(channel, res)
+						if debug or funMode: print("::: Updating",t._id+"."+channel,"=",res)
+						t.__setitem__(channel, res, skip_publish = True)
 					# self.__setitem__(channel, res)
 					pass
 						# xoRedis.__setitem__(target, key ,res)
@@ -1416,21 +1507,32 @@ class xoRedis(xoBenedict):
 				# print("<<<<<<<<<<<<<<<")
 				# print()
 			if msg["type"] == "subscribe":
-				# print(" ::: SUBSCRIBED TO CHANNEL", msg["pattern"])
+				print(" ::: SUBSCRIBED TO CHANNEL", msg["pattern"])
 				pass
 
 	def __init__(self, *args, **kwargs):
 		self._host = kwargs["host"] if "host" in kwargs else host
 		self._port = kwargs["port"] if "port" in kwargs else port
+		password = kwargs["password"] if "password" in kwargs else ""
 		
 		# if self._isRoot: # should work the same
-		
+		if "host" in kwargs: kwargs.pop("host")
+		if "port" in kwargs: kwargs.pop("port")
+		if "password" in kwargs: kwargs.pop("password")
+		# kwargs.pop("pass")
+
 		super().__init__(*args, **kwargs)
+		# if self._isRoot:
+			# print("Host",self._host)
+			# print("Port",self._port)
+			# if password != "":		
+				# print("Pass","************")
 		# self._rootName = "xoRedis"
 		# self._namespace = self._rootName
 		self._rootName = self._type.__name__
 		self._namespace = self._id
 
+		
 		# if self._getRoot()._redis:
 		# 	pass
 		# 	print("!!!!!!!!!!!!!")
@@ -1443,12 +1545,17 @@ class xoRedis(xoBenedict):
 				kwargs["port"] = self._port
 			if "db" not in kwargs:
 				kwargs["db"] = self._db
+			if password != "":
+				kwargs["password"] = password
+			
 			# self._redis = RedisClient(host=self._host, port=self._port, db=self._db)
 			# self._redis = RedisClient(**kwargs)
 			client_address = str(kwargs["host"])+":"+str(kwargs["port"])+"@"+str(kwargs["db"])
 			if client_address not in xoRedis._clients:
 				try:
-					print(f"::: Connecting to {client_address}",kwargs)
+					safekwargs = kwargs.copy()
+					if "password" in safekwargs: safekwargs["password"] = "************"
+					print(f"::: Connecting to {client_address}",safekwargs)
 					self._redis = RedisClient(**kwargs)
 					xoRedis._redis = self._redis
 					success = self._redis.ping()
@@ -1473,12 +1580,17 @@ class xoRedis(xoBenedict):
 			elif "value" in kwargs:
 				found = kwargs["value"]
 			if found == None:
-				print("121212121212")
-				print("121212121212")
-				print("121212121212")
-				self.value = self.fetchRedis()
+				# print("121212121212")
+				# print("121212121212")
+				# print("121212121212")
+				res = self.fetchRedis()
+				if res != None:
+					self.value = res
+				else:
+					pass
+					# print("HANDLE NONE?")
 			else:
-				print("SKIPPING FETCHING")
+				# print("SKIPPING FETCHING")
 				self.value = found
 				
 
@@ -1513,15 +1625,20 @@ class xoRedis(xoBenedict):
 			gotRes = True
 			return res
 		else:
-			print("::: No Matching:",self._id)
+			pass
+			# print("::: No Matching:",self._id)
 		return 
 			# ex
 
 	def __call__(self,*args, **kwargs):
+		if 'value' in self:
+			if 'function' in str(type(self.value)):
+				# print(55555555)
+				return self.value(*args, **kwargs)
 		if len(args) == 0:
-			print("3434343434 call")
-			print("3434343434 call")
-			print("3434343434 call")
+			# print("3434343434 call")
+			# print("3434343434 call")
+			# print("3434343434 call")
 			res = self.fetchRedis()
 			# print("MATCH:",res==self)
 			if res and res != self:
@@ -1584,22 +1701,52 @@ class xoRedis(xoBenedict):
 	
 	_lastPub = {}
 
-	def _safePublish(self, key, val, *args, **kwargs):
-		if key not in self._root._lastPub or val != self._root._lastPub[key]:
-			self._root._lastPub[key] = val
-			print("::: Publishing safely.....",key)
+	def _safeUpdate(self, key, val, *args, **kwargs):
+		pass
+	
+	def _normalPublish(self, fullkey, val, *args, **kwargs):
+		r:RedisClient = self._root._redis
+		sender = hash(self._root._redis)
+		val = pk.dumps([sender,val])
+		# val = pk.dumps(val)
+		# res = r.set(self._id, val)
+		if debug: print("::: Publishing",fullkey)
+		r.publish(fullkey, val)
+
+	def _safePublish(self, fullkey, val, *args, **kwargs):
+		return self._normalPublish(fullkey, val, *args, **kwargs)
+	
+	def _safePublishx(self, fullkey, val, *args, **kwargs):
+		if fullkey not in self._root._lastPub or val != self._root._lastPub[fullkey]:
+			self._root._lastPub[fullkey] = val
+			print("::: Publishing safely.....",fullkey)
 			# if key == "value":
 			r = self._root._redis
-			val = pk.dumps(val)
+			sender = hash(self._root._redis)
+			val = pk.dumps([sender,val])
+			# val = pk.dumps(val)
 			# res = r.set(self._id, val)
-			r.publish(key, val)
-			print("!!!!!!!!!!!!!! PUBLISHED", key, val)
-			print(self._root._lastPub)
-			print("*************** PUBLISHED", key, val)
+			r.publish(fullkey, val)
+			# r.publish(fullkey, [sender,val])
+			# print("!!!!!!!!!!!!!! PUBLISHED", fullkey, val)
+			# print(self._root._lastPub)
+			# print("*************** PUBLISHED", fullkey, val)
 		else:
-			print("......skiping same publish..........",key)
+			print("......skiping same publish..........",fullkey)
 
-	def __setitem__(self, key, value, doubleSkip = False, *args, **kwargs):
+	def __setitem__(self, key, value, skip_publish = False, *args, **kwargs):
+		res = super().__setitem__(key, value, *args, **kwargs)
+		if key != "value" and not isinstance(value, xoBenedict):
+			# self._safeUpdate(key, value)
+			if debug:
+				print("::: SAVING TO REDIS",self._id+"."+key,value)
+			val = pk.dumps(value)
+			res2 = self._root._redis.set(self._id+"."+key, val)
+			if not skip_publish:
+				self._safePublish(self._id+"."+key, value)
+		return res
+	
+	def __setitemx__(self, key, value, doubleSkip = False, *args, **kwargs):
 		skip = False
 		# print("XSetting", self._id+"."+key, "to",type(value),)# value,)
 		r = self._root._redis
@@ -1706,6 +1853,12 @@ def testing():
 	
 	# bi.a.b.c.set(3).d.set(4).e(5).f.set(6).g("777").set("h",888).set(7777, HH = "1000000000000000").HH.awesome.set(11111)
 
+# from xo import xoRedis
+# xo = xoRedis()
+# xo.a = 3
+# from xo import xoEvents
+# xo = xoEvents()
+# xo.a.b.c = 3
 
 # xo = xoRedis()
 # print("Ready")
