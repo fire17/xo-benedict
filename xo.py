@@ -490,8 +490,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# print("IIIIIIIIIIIIIIIIIIIIIII")
 			# print("IIIIIIIIIIIIIIIIIIIIIII")
 			return
-		print("IIIIIIIIIIIIIIIIIIIIIII",key, value, skip,a,kw)
-		print("IIIIIIIIIIIIIIIIIIIIIII",key in self)
+		# print("IIIIIIIIIIIIIIIIIIIIIII",key, value, skip,a,kw)
+		# print("IIIIIIIIIIIIIIIIIIIIIII",key in self)
 		newKey = key not in self and key == value
 		# print("ssssssss",key,value)
 		if False and key != 'value' and value != {} and "__onchange__" in self.__dir__() and "skip_change" not in kw:
@@ -580,7 +580,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 						# print("HERERERERERE111111")
 						# self[key].value = value
 						
-						print("#########1111111111",key,value, kw)
+						# print("#########1111111111",key,value, kw)
 						# child.__setattr__("value",value)
 						child.__setitem__("value",value, **kw)
 						#child.value = value
@@ -606,7 +606,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					newobj.__setitem__("value",value,**kw)
 					value = newobj
 			else:
-				print("KKKK",key,type(key), value)
+				# print("KKKK",key,type(key), value)
 				# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
 				pass
 				# value = type(self)({"value":value}, _id = str(self._id)+"."+key, keyattr_dynamic=True)
@@ -2287,12 +2287,12 @@ class FreshRedis(xoBenedict):
 				found = kwargs["value"]
 			
 			if "skip_fetch" in self._params:
-				if debug or True: print(" YYYYYYYY SKIPPING FETCHING")
+				# if debug or True: print(" YYYYYYYY SKIPPING FETCHING")
 				self._params.pop("skip_fetch")
 			elif found == None:
 				# print("121212121212")
 				# print("121212121212")
-				print("121212121212",args, kwargs)
+				# print("121212121212",args, kwargs)
 				res = self.fetchRedis()
 				if res != None:
 					pass
@@ -2373,7 +2373,7 @@ class FreshRedis(xoBenedict):
 		# save = pk.dumps(orgVal)
 		# res = r.set(self._id, save)
 		if debug or True: print("::: Publishing",fullkey, orgVal)
-		time.sleep(1)
+		# time.sleep(1)
 		r.publish(fullkey, val)
 
 	def _safePublish(self, fullkey, val, *args, **kwargs):
@@ -2381,12 +2381,13 @@ class FreshRedis(xoBenedict):
 	
 
 
+
 class xoMetric(FreshRedis):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
-		print("PPPPPPPPPPPPPPPPPPPP ",self._id,fullkey,value, args, kwargs)
+		# print("PPPPPPPPPPPPPPPPPPPP ",self._id,fullkey,value, args, kwargs)
 		
 		# key = fullkey[len(self._id+"."):]
 		# if self[key].value == value:
