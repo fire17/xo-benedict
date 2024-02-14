@@ -9,9 +9,12 @@ from benedict.dicts.parse import ParseDict
 from benedict import benedict#, KeyattrDict, KeypathDict, IODict, ParseDict
 # b = benedict()
 import dill as pk
+from pyfiglet import figlet_format as figlet
+from colorama import Fore as color
 
-debug = False
+
 debug = True
+debug = False
 funMode = True # send keys to others, even if they dont have them yet
 
 counter =0
@@ -28,6 +31,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	_subscribers = []
 
 	ignore_keys = ['_override','keyattr_dynamic', 'keyattr_enabled','keypath_separator','check_keys']
+	_params = {}
+
 	def __init__(self,*args, **kwargs):
 		"""
 		Constructs a new instance.
@@ -35,11 +40,13 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		self._type = type(self)
 		if xoBenedict._root is None:
 			xoBenedict._root = self
+
 			self._isRoot = True
 		else:
 			self._root = xoBenedict._root
 
 		
+		self._subscribers = []
 		self._isRoot = True
 		
 		
@@ -74,6 +81,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	print("TTTTTTTTTT",type(args[0]))
 		# print(":::",self._id)
 		
+		if "skip_fetch" in kwargs:
+			self._params["skip_fetch"] = kwargs.pop("skip_fetch")
 
 		global counter
 		my_c = counter
@@ -464,6 +473,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# child.value = value
 				# res = None
 				child = type(self)(_id = self._id+"."+key)
+				print('xxx')
 				child.value = value
 				res = super().__setitem__(key,child)
 		
@@ -475,11 +485,57 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		return hash(self._id)
 	
 	def __setitem__(self, key, value, skip = False,*a, **kw):
+		if isinstance(value, ignore):
+			# print("IIIIIIIIIIIIIIIIIIIIIII")
+			# print("IIIIIIIIIIIIIIIIIIIIIII")
+			# print("IIIIIIIIIIIIIIIIIIIIIII")
+			return
+		print("IIIIIIIIIIIIIIIIIIIIIII",key, value, skip,a,kw)
+		print("IIIIIIIIIIIIIIIIIIIIIII",key in self)
+		newKey = key not in self and key == value
+		# print("ssssssss",key,value)
+		if False and key != 'value' and value != {} and "__onchange__" in self.__dir__() and "skip_change" not in kw:
+			print("SSSSSSSSSs")
+			# res = self.__onchange__(self._id+"."+key, value, oorigin = "IIIIIII",*a,**kw)
+			# res = self.__onchange__(self._id+"."+key, value, oorigin = "IIIIIII",*a,**kw)
+			pass
+			# self._updateSubscribersDeep_(res) this will update all children!
+			# self._updateSubscribers_(res)
 
-		if key != 'value' and value != {} and "__onchange__" in self.__dir__() and "skip_change" not in kw:
-			res = self.__onchange__(self._id+"."+key, value,*a,**kw)
-			if res != None:
-				value = res
+			# print("SSSSSSSSSsxxxxxxxx")
+			# self._updateSubscribers_(res)
+			
+			# if res != None:
+			# 	value = res
+			pass
+		if True:
+			if key == "value":
+				if (key == 'value' and value != {}):
+					self._updateSubscribers_(value)
+
+				if "__onchange__" in self.__dir__() and "skip_change" not in kw:
+					res = self.__onchange__(self._id+"."+key, value, origin2 = "setitem:value",*a,**kw)
+					if res != None:
+						value = res
+
+		# elif key == 'value' and value != {} and "__onchange__" not in self.__dir__() and "skip_change" not in kw:
+		elif (newKey or key == 'value') and value != {}:
+			# if newKey and key=="value" or key!=value and "origin" in kw: kw["skip_publish"] = True
+			if newKey and key=="value" or key!=value and "origin" in kw: kw["skip_publish"] = True
+			if (key == 'value' and value != {}):
+				self._updateSubscribers_(value)
+				
+			if "origin" in kw: kw["skip_publish"] = True
+			if "origin" in kw and "get_attr" in kw['origin']: kw["skip_change"] = True
+			# print("!!!!!!!!",kw)
+			if "__onchange__" in self.__dir__() and "skip_change" not in kw:
+				res = self.__onchange__(self._id+"."+key, value, origin2 = "setitem:value",*a,**kw)
+				if res != None:
+					value = res
+
+			# self._updateSubscribers_(value)
+			pass
+			# print("!!!!!!!!@@@")
 		'''
 		# if  "__onchange__" in self.__dir__():
 		# if key == "value" and not skip:
@@ -524,25 +580,43 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 						# print("HERERERERERE111111")
 						# self[key].value = value
 						
-						child.__setattr__("value",value)
+						print("#########1111111111",key,value, kw)
+						# child.__setattr__("value",value)
+						child.__setitem__("value",value, **kw)
 						#child.value = value
 						# value = self[key]
 						pass
 						return value
 					if skip:
+						# print("#########121212",key)
 						if super().__getattribute__(key)._type == type(self):
-							# print("BINGO!!!!!!!!!!!!!!!!!!!!!!!!")
+							print("BINGO!!!!!!!!!!!!!!!!!!!!!!!!")
 							super().__getattribute__(key).value = value
 							# super().__getattribute__(key).__setitem__("value",value, noPub=True)
 							# super().__getattribute__(key).__setitem__("value",value, noPub=True)
 						return super().__getattribute__(key)
 				else:
-					# print("XXXXXXXXXXXX",type(self[key]))
-					value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+					print("XXXXXXXXXXXX",type(self[key]))
+					pass
+					# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+					pass
+					newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True)
+					# newobj.value = value
+					# newobj.__setitem__("value",value,origin='setitem:new_value')
+					newobj.__setitem__("value",value,**kw)
+					value = newobj
 			else:
-				# print("KKKK",type(key))
+				print("KKKK",key,type(key), value)
 				# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
-				value = type(self)({"value":value}, _id = str(self._id)+"."+key, keyattr_dynamic=True)
+				pass
+				# value = type(self)({"value":value}, _id = str(self._id)+"."+key, keyattr_dynamic=True)
+				pass
+				newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True, skip_fetch=True)
+				# newobj.value = value
+				# newobj.value = value
+				newobj.__setitem__("value",value,origin='setitem:new_value2', *a, **kw)
+				value = newobj
+				
 				# print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
@@ -550,11 +624,13 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# print("key", key)
 			if key in self and key != "value":
 				if not isinstance(self[key],dict):
+					# print("#########22222",key)
 					self[key] = value
 					# self.__dict__[key] = value
 					self.__dict__[key] = self[key]
 				else:
 					# print("##################",type(value))
+					# print("#########22222.5",key)
 					self[key].update(value)
 					# for k in value:
 					# 	print("##################",type(value[k]))
@@ -591,7 +667,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# if key in self.__dict__ and isinstance(self[key],type(self)):
 			# 	print("skip!")
 			# 	return super().__getitem__(key)
-			res = super().__setitem__(key, value)
+			# print("#########3")
+			res = super().__setitem__(key, value, )# origin="xoBenedict_setitem")
 			self.__dict__[key]=value
 			# print(key in self,"!!!!!!!!!!!!")#, type(self.__dict__[key]))
 		# if isinstance(value, dict):
@@ -1264,25 +1341,30 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				raise AttributeError(attr_message) from None
 			# self.__setitem__(attr, {})
 
-			self.__setitem__(attr, type(self)(_id = self._id+"."+attr))
+			self.__setitem__(attr, type(self)(_id = self._id+"."+attr), origin="get_attr")
 			# self.__setitem__(attr, xoBenedict())
 			return self.__getitem__(attr)
 
 	def __imatmul__(self, other):
 		# print("@= @@@@@@@@@@@@",other)
 		if "tuple" in str(type(other)):
+			print("X")
 			res = None
 			for func in other:
+				# res = self.subscribe(func)
 				res = self.subscribe(func)
+				# self._subscribers.append(func)
 			# return res
 		else:
+			# print("YYY",self._id)
+			# self._subscribers.append(other)
 			self.subscribe(other)
-		# print("@= @@@@@@@@@@@@",other)
-		return self.value
+		# print(f"@@= @@@@@@@@@@@@{self._id}",other)
+		return ignore()
 
 	def subscribe(self, funcOrXo=None):
 		# print(" ::: Subscribing to", self._name)
-		print(" ::: Subscribing to", self._id)
+		print("::: Subscribing to", self._id)
 		# print("SSSSSSSSSSSSSSS",self, funcOrXo)
 		if funcOrXo is None:
 			# print("XxxxxxX")
@@ -1293,22 +1375,30 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if funcOrXo not in self._subscribers and funcOrXo not in self._subscribers:
 			self._subscribers.append(funcOrXo)
 
-	def _updateSubscribers_(self, *v, **kw):
+	def _updateSubscribers_(self,value, *v, **kw):
 		# for trigger in self._triggers:
 		# 	#TODO: in new thread
 		# 	trigger()
 		# xo.a.<s>.a = 3
+		# print("UUU",self._id,self._subscribers)
 		for sub in self._subscribers:
 			#TODO: in new thread
 			# print(sub)
 			# print("&&&",self[Expando._valueArg], sub)
-			# print("***************")
+			# print("***************",self._id, value, v, kw)
 			# print(sub(*v, **kw))
 			kw["_xo"] = self
 			kw["_id"] = self._id
-			sub(*v, **kw)
+			# if "value" in self:
+			# sub(value,*v, **kw)
+			try:
+				sub(value,*v, **kw)	
+			except:
+				traceback.print_exc()
 
 
+class ignore():
+	pass
 
 class xoEvents(xoBenedict):
 	def __init__(self, *args, **kwargs):
@@ -1432,7 +1522,7 @@ class xoRedis(xoBenedict):
 	def _directBind(self, msg, *args, **kwargs):
 		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
 		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
-		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu", msg, args, kwargs)
+		print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu", msg, args, kwargs)
 		# time.sleep(1)
 		if isinstance(msg, dict) and "type" in msg:
 			if "message" in msg["type"]:
@@ -1487,6 +1577,7 @@ class xoRedis(xoBenedict):
 						sender, res = final = pk.loads(res)
 						# sender, res = final = pk.loads(res)
 						if sender == hash(self._root._redis):
+							# LEGACY
 							# print("@@@@@@@@@@@@@@@ WORKING! SKIPPING SELF UPDATE", channel, "")
 							return 
 						# print("try res:",res)
@@ -1520,7 +1611,7 @@ class xoRedis(xoBenedict):
 							res = self._cast(res)
 						getKeysYouDontHaveAlready = False
 						if getKeysYouDontHaveAlready or funMode:
-							if debug or funMode: print("::: Updating (new)", channel, "=", str(res)[:40] + '...' if len(str(res)) > 40 else str(res))
+							if debug or funMode: print("::: Updating (xxx new)", channel, "=", str(res)[:40] + '...' if len(str(res)) > 40 else str(res))
 							self.__setitem__(channel, res , skip_publish = True)
 							pass
 						# else:
@@ -1648,12 +1739,19 @@ class xoRedis(xoBenedict):
 				# print("121212121212")
 				res = self.fetchRedis()
 				if res != None:
-					self.value = res
+					# update instead set
+					sender = yourID = hash(self._root._redis)
+					super().__setitem__("value", res, skip_publish = True, sender=sender)
+					# self.value = res
 				else:
 					pass
 					# print("HANDLE NONE?")
 			else:
 				# print("SKIPPING FETCHING")
+				print("@@@@@@@@@@")
+				print("@@@@@@@@@@")
+				print("@@@@@@@@@@")
+				print("@@@@@@@@@@")
 				self.value = found
 				
 
@@ -1773,7 +1871,7 @@ class xoRedis(xoBenedict):
 		val = pk.dumps([sender,val])
 		# val = pk.dumps(val)
 		# res = r.set(self._id, val)
-		if debug: print("::: Publishing",fullkey)
+		if debug: print("::: Publishing x",fullkey)
 		r.publish(fullkey, val)
 
 	def _safePublish(self, fullkey, val, *args, **kwargs):
@@ -1869,6 +1967,7 @@ class xoRedis(xoBenedict):
 				# self.value = None
 				pass
 			else:
+				print(">>>>>>>>")
 				self[key].value = None
 
 
@@ -1888,7 +1987,7 @@ class FreshRedis(xoBenedict):
 	# 	return super().__init__(*args, **kwargs)
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
-		if debug or True: print(f" : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
+		if debug: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
 		# Save and publish
 		# sender = hash(self._root._redis)
 		if False: #change value if you want before everything
@@ -1897,7 +1996,7 @@ class FreshRedis(xoBenedict):
 		
 		newVal = value
 		
-		print("vvvv",type(newVal),value)
+		# print("vvvv",type(newVal),value)
 
 		if isinstance(newVal,xoBenedict):
 			#handle dicts
@@ -1908,11 +2007,17 @@ class FreshRedis(xoBenedict):
 
 		# val = pk.dumps([sender,val])
 		# val = pk.dumps(val)
+		fullkey = fullkey[:-6] if ".value" == fullkey[-6:] else fullkey
 		res = self._root._redis.set(fullkey, val)
 		if debug: print(f" : : : {res} SAVING TO REDIS",fullkey,newVal)
 		# self._safePublish(self._id+"."+key, val) # maybe better to send pk and unpack
-		if "skip_publish" not in kwargs:
+		if "skip_publish" not in kwargs:# and 'origin' not in kwargs:
+		# if "skip_publish" not in kwargs:
+			# print("PRE PUBLISH")
 			self._safePublish(fullkey, newVal) 
+		else:
+			pass
+			if debug: print(" : : : SKIPPING PUBLISH")
 
 		# The value you return will be passed on as if it was the original value.
 		return newVal 
@@ -2180,19 +2285,33 @@ class FreshRedis(xoBenedict):
 				found = args[0]["value"]
 			elif "value" in kwargs:
 				found = kwargs["value"]
-			if found == None:
+			
+			if "skip_fetch" in self._params:
+				if debug or True: print(" YYYYYYYY SKIPPING FETCHING")
+				self._params.pop("skip_fetch")
+			elif found == None:
 				# print("121212121212")
 				# print("121212121212")
-				# print("121212121212")
+				print("121212121212",args, kwargs)
 				res = self.fetchRedis()
 				if res != None:
-					self.value = res
+					pass
+					# self.value = res
+					# print("12121212", type(self))
+					self.__setitem__("value", res, skip_publish=True, origin='init:fetched',)
+					# self.__setattr__("value", res)#, skip_publish=True,skip_change = True)
+					# print("12121212xxxxxxxx")
+					return
 				else:
 					pass
+				'''
+				'''
 					# print("HANDLE NONE?")
 			else:
 				# print("SKIPPING FETCHING")
-				self.value = found
+				# self.__setitem__("value", found, skip_change = True)
+				# self.value = found
+				pass
 				
 
 			# print("__FETCHING DONE",self._id)
@@ -2234,9 +2353,9 @@ class FreshRedis(xoBenedict):
 				# print(55555555)
 				return self.value(*args, **kwargs)
 		if len(args) == 0:
-			# print("3434343434 call")
-			# print("3434343434 call")
-			# print("3434343434 call")
+			print("3434343434 call")
+			print("3434343434 call")
+			print("3434343434 call")
 			res = self.fetchRedis()
 			# print("MATCH:",res==self)
 			if res and res != self:
@@ -2251,9 +2370,10 @@ class FreshRedis(xoBenedict):
 		sender = hash(self._root._redis)
 		orgVal = val
 		val = pk.dumps([sender,val])
-		# val = pk.dumps(val)
-		# res = r.set(self._id, val)
+		# save = pk.dumps(orgVal)
+		# res = r.set(self._id, save)
 		if debug or True: print("::: Publishing",fullkey, orgVal)
+		time.sleep(1)
 		r.publish(fullkey, val)
 
 	def _safePublish(self, fullkey, val, *args, **kwargs):
@@ -2266,13 +2386,20 @@ class xoMetric(FreshRedis):
 	# 	return super().__init__(*args, **kwargs)
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
+		print("PPPPPPPPPPPPPPPPPPPP ",self._id,fullkey,value, args, kwargs)
+		
+		# key = fullkey[len(self._id+"."):]
+		# if self[key].value == value:
+		# 	print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+		# 	return value
+		
 		if "sender" not in kwargs: #kwargs include __setitem__ kwargs
 			yourID = hash(self._root._redis)
 			print("$ $ $ $ $ SYNCING METRICS! $ $ $ $ $", fullkey, value, args, kwargs)
 		else: # Got metric from another xooMetric (redis) client
 			print(f"$ $ $ $ $ Got METRICS from {kwargs['sender']}! $ $ $ $ $", fullkey, value, args, kwargs)
-
-		self._updateSubscribers_(value)
+		# if "skip_publish" in kwargs:
+		# 	return value
 		return super().__onchange__(fullkey, value, *args, **kwargs) # make sure to call redis
 
 
@@ -2396,6 +2523,11 @@ def testing():
 		print(":::",time.time()-t)
 
 
+
+# m = xoMetric()
+# m.fig
+# m.msg @= lambda self, t, *a, **kw: m.fig(t)
+
 # xo = xoBenedict()
 # xo.a.b = 2
 # print("......................")
@@ -2435,3 +2567,62 @@ if __name__ == '__main__':
 # Hint: Ctrl+Alt+B to open outline
 
 	
+
+'''
+
+#OG
+up.fig = lambda v,Fore=color, figlet_format=figlet,*a,**kw: print(Fore.YELLOW+figlet_format(v)+Fore.WHITE)
+up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
+
+# OG
+from colorama import Fore as color
+def msn(self, color=color,c="yellow", *a,**kw):
+    self = self._root
+    self.msg @= self.fig
+    c = color.__getattribute__(c.upper())
+    while True:
+            self.msg = c+input(c+"Chat: "+color.WHITE)
+up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
+
+
+# NEWER 
+
+# Print with Yellow & Big Letters (colorama + figlet)
+from colorama import Fore as color
+from pyfiglet import figlet_format as figlet
+def colorfig(v, figlet_format=figlet,Fore=color,c='yellow'):
+    c = Fore.__getattribute__(c.upper())
+    if "\x1b" in v:
+	c, v = v[:5],v[5:]
+    return c+figlet_format(v)+Fore.WHITE
+
+
+up.fig = lambda v,c = 'yellow', Fore=color, figlet_format=figlet,colorfig=colorfig,*a,**kw: print(colorfig(v, figlet_format, Fore, c=c))
+
+
+#NEWER
+
+from colorama import Fore as color
+def msn(self, color=color,c="yellow", *a,**kw):
+    self = self._root
+    self.msg @= self.fig
+    c = color.__getattribute__(c.upper())
+    while True:
+        i = input(c+"Chat: "+color.WHITE)
+        if len(i)>1 and i[0] == ":" and len(i.split(":"))>=3:
+            try:
+                c, i = color.__getattribute__(i.split(":")[1].upper()), ":".join(i.split(":")[2:])
+            except:
+                print(color.RED+i.split(":")[1]+" is not a correct color")
+                continue
+        final = c+i
+        if len(i)>0:
+            self.msg = final
+
+
+up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
+
+
+'''
+
+
