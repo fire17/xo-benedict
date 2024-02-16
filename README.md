@@ -1,3 +1,5 @@
+![python-benedict](https://github.com/fire17/xo-benedict/assets/9356048/cfbe1830-f2b3-4da8-9c05-f0836a38f55e)
+<!--
 [![](https://img.shields.io/pypi/pyversions/python-benedict.svg?color=blue&logo=python&logoColor=white)](https://www.python.org/)
 [![](https://img.shields.io/pypi/v/python-benedict.svg?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/python-benedict/)
 [![](https://static.pepy.tech/badge/python-benedict/month)](https://pepy.tech/project/python-benedict)
@@ -12,11 +14,26 @@
 [![](https://img.shields.io/scrutinizer/quality/g/fabiocaccamo/python-benedict?logo=scrutinizer)](https://scrutinizer-ci.com/g/fabiocaccamo/python-benedict/?branch=main)
 [![](https://img.shields.io/badge/code%20style-black-000000.svg?logo=python&logoColor=black)](https://github.com/psf/black)
 [![](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+-->
+# xo-benedict
+**xo** by iteself is a special object with a bunch of syntax-sugar built in, much like a dictionary, it is very simple and basic by itself, but it is a magical building blick for many practical applications.
+For example:
+-    Easy As Pie Data Persistancy & Realtime Cross-Process Sync - all over a dictionary - with **xo-redis** (Pub/Sub)
+-    Easy As Pie Process-To-Process async function calling, all from the xo object - **xo-service** (Request/Response)
+-    E.A.P Python-To-JS variable binding! change in the back instantly show in the front and vise versa! with **xo-js**
+-    Advanced Data Structures, such as xoDeque (every value is appended to deque), and xoBranch - changes create alternate branching timelines
+-    Mix and Match xo's -> xoRedis + xoAnything (save to redis), xoRedis + xoBranch = Editable Chat Conversation for xoAi, much like how open-ai does
+  
+xo-benedict is a continuation of the **xo** (expando) project, making a super-object/dictionary, with special abilities 🔥<br>
+this implemintation uses benedict under the hood. previously it was based on our own dynamic object, but benedict has some benifits<br> and mainly because it is very well tested!
+<br>``python-benedict is a dict subclass with **keylist/keypath/keyattr** support, **I/O** shortcuts (`base64`, `cli`, `csv`, `html`, `ini`, `json`, `pickle`, `plist`, `query-string`, `toml`, `xls`, `xml`, `yaml`) and many **utilities**... for humans, obviously.``
 
-# python-benedict
-python-benedict is a dict subclass with **keylist/keypath/keyattr** support, **I/O** shortcuts (`base64`, `cli`, `csv`, `html`, `ini`, `json`, `pickle`, `plist`, `query-string`, `toml`, `xls`, `xml`, `yaml`) and many **utilities**... for humans, obviously.
+## Special Features
+-    xo is dictionary, a dynamically nestable dictionary, but can also hold a value!
+-    using the __onchange__ function, you can easily extend xo and create all kind of uniquely powerfull objects
+-    
 
-## Features
+## Features From Benedict
 -   100% **backward-compatible**, you can safely wrap existing dictionaries.
 -   `NEW` **Keyattr** support for get/set items using **keys as attributes**.
 -   **Keylist** support using **list of keys** as key.
@@ -27,44 +44,12 @@ python-benedict is a dict subclass with **keylist/keypath/keyattr** support, **I
 -   Many **utility** and **parse methods** to retrieve data as needed *(check the [API](#api) section)*.
 -   Well **tested**. ;)
 
-## Index
--   [Installation](#installation)
-    -   [Optional Requirements](#optional-requirements)
--   [Usage](#usage)
-    -   [Basics](#basics)
-    -   [Keyattr](#keyattr) `my_dict.x.y.z`
-    -   [Keylist](#keylist) `my_dict["x", "y", "z"]`
-    -   [Keypath](#keypath) `my_dict["x.y.z"]`
-        -   [Custom keypath separator](#custom-keypath-separator)
-        -   [Change keypath separator](#change-keypath-separator)
-        -   [Disable keypath functionality](#disable-keypath-functionality)
-        -   [List index support](#list-index-support)
-    -   [I/O](#io)
-    -   [API](#api)
-        -   [Utility methods](#utility-methods)
-        -   [I/O methods](#io-methods)
-        -   [Parse methods](#parse-methods)
--   [Testing](#testing)
--   [License](#license)
-
 ## Installation
 If you want to install **everything**:
--   Run `pip install "python-benedict[all]"`
+-   Run `pip install "xo-benedict[all]"`
 
 alternatively you can install the main package:
--   Run `pip install python-benedict`, then install only the [optional requirements](#optional-requirements) you need.
-
-### Optional Requirements
-Here the hierarchy of possible installation targets available when running `pip install "python-benedict[...]"` *(each target installs all its sub-targets)*:
-- `[all]`
-    - `[io]`
-        - `[html]`
-        - `[toml]`
-        - `[xls]`
-        - `[xml]`
-        - `[yaml]`
-    - `[parse]`
-    - `[s3]`
+-   Run `pip install xo-benedict`, then install only the [optional requirements](#optional-requirements) you need.
 
 ## Usage
 
@@ -75,23 +60,31 @@ Here the hierarchy of possible installation targets available when running `pip 
 from benedict import benedict
 
 # create a new empty instance
-d = benedict()
+d = xoBenedict()
 
 # or cast an existing dict
-d = benedict(existing_dict)
+d = xoBenedict(existing_dict)
 
 # or create from data source (filepath, url or data-string) in a supported format:
 # Base64, CSV, JSON, TOML, XML, YAML, query-string
-d = benedict("https://localhost:8000/data.json", format="json")
+d = xoBenedict("https://localhost:8000/data.json", format="json")
 
 # or in a Django view
-params = benedict(request.GET.items())
+params = xoBenedict(request.GET.items())
 page = params.get_int("page", 1)
 ```
 
 ### Keyattr
 It is possible to get/set items using **keys as attributes** (dotted notation).
 
+#### in benedict
+```python
+d = xoBenedict() # default: keyattr_dynamic=True 
+d.profile.name = "Fabio Caccamo"
+d.profile.lastname = 
+print(d) # -> { "profile":{ "firstname":"Fabio", "lastname":"Caccamo" } }
+```
+#### in benedict
 ```python
 d = benedict(keyattr_dynamic=True) # default False
 d.profile.firstname = "Fabio"
@@ -99,7 +92,7 @@ d.profile.lastname = "Caccamo"
 print(d) # -> { "profile":{ "firstname":"Fabio", "lastname":"Caccamo" } }
 ```
 
-By default, if the `keyattr_dynamic` is not explicitly set to `True`, this functionality works for get/set only already existing items.
+By default, and as apposed to benedict, the `keyattr_dynamic` `**IS**` explicitly set to `True`, this functionality works for get/set only already existing items.
 
 #### Disable keyattr functionality
 You can disable the keyattr functionality passing `keyattr_enabled=False` option in the constructor.
