@@ -354,7 +354,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	print("YES2")
 		# if key not in self.__dict__:
 		if key not in self.keys() and key not in self.__dict__:
-			# res = self._cast(super().__getitem__(key), key = self._id+"."+key)
+			# res = self._cast(super().__getitem__(key), key = self._id+"."+str(key))
 			# res = self._cast(super().__getitem__(key), key = key)
 			# print("again")
 			try:
@@ -476,7 +476,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("SSSSSSSSS",key,value,skip,kw)
 		if key != 'value' and value != {} and "__onchange__" in self.__dir__() and "skip_change" not in kw:
 			#THIS IS NOT THE FUNCTION YOUR LOOKING FOR
-			res = self.__onchange__(self._id+"."+key, value,*a,**kw)
+			res = self.__onchange__(self._id+"."+str(key), value,*a,**kw)
 			if res != None:
 				value = res
 			
@@ -491,13 +491,13 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				child =  self.__getattr__(key)
 				res = child.__setattr__("value",value)
 			else:
-				# res = super().__setitem__(key, self._cast(value, key = self._id+"."+key))
-				# res = super().__setitem__(key, self._cast(value, key = self._id+"."+key))
+				# res = super().__setitem__(key, self._cast(value, key = self._id+"."+str(key)))
+				# res = super().__setitem__(key, self._cast(value, key = self._id+"."+str(key)))
 				# res = super().__setitem__(key, self._cast(value, key = key))
 				# child = self
 				# child.value = value
 				# res = None
-				child = type(self)(_id = self._id+"."+key)
+				child = type(self)(_id = self._id+"."+str(key))
 				print('xxx')
 				child.value = value
 				res = super().__setitem__(key,child)
@@ -521,8 +521,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("ssssssss",key,value)
 		if False and key != 'value' and value != {} and "__onchange__" in self.__dir__() and "skip_change" not in kw:
 			print("SSSSSSSSSs")
-			# res = self.__onchange__(self._id+"."+key, value, oorigin = "IIIIIII",*a,**kw)
-			# res = self.__onchange__(self._id+"."+key, value, oorigin = "IIIIIII",*a,**kw)
+			# res = self.__onchange__(self._id+"."+str(key), value, oorigin = "IIIIIII",*a,**kw)
+			# res = self.__onchange__(self._id+"."+str(key), value, oorigin = "IIIIIII",*a,**kw)
 			pass
 			# self._updateSubscribersDeep_(res) this will update all children!
 			# self._updateSubscribers_(res)
@@ -559,7 +559,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			if "origin" in kw and "get_attr" in kw['origin']: kw["skip_change"] = True
 			# print("!!!!!!!!",kw)
 			if "__onchange__" in self.__dir__() and "skip_change" not in kw:
-				res = self.__onchange__(self._id+"."+key, value, origin2 = "setitem:value",*a,**kw)
+				res = self.__onchange__(self._id+"."+str(key), value, origin2 = "setitem:value",*a,**kw)
 				if res != None:
 					value = res
 
@@ -584,8 +584,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# print("111111111111", self._id,key, value)
 			
 			# value = obj_type({"value":value}, keyattr_dynamic=True, _parent = self)
-			# print("NEXT:",self._id+"."+key)
-			# value = xoBenedict({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+			# print("NEXT:",self._id+"."+str(key))
+			# value = xoBenedict({"value":value}, _id = self._id+"."+str(key), keyattr_dynamic=True)
 			# if key in self:
 			# if key in self.keys():
 			if key in super().keys():
@@ -628,20 +628,20 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				else:
 					print("XXXXXXXXXXXX",type(self[key]))
 					pass
-					# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+					# value = type(self)({"value":value}, _id = self._id+"."+str(key), keyattr_dynamic=True)
 					pass
-					newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True , keypath_separator = keypath_separator)
+					newobj = type(self)(_id = self._id+"."+str(key), keyattr_dynamic=True , keypath_separator = keypath_separator)
 					# newobj.value = value
 					# newobj.__setitem__("value",value,origin='setitem:new_value')
 					newobj.__setitem__("value",value,**kw)
 					value = newobj
 			else:
 				# print("KKKK",key,type(key), value)
-				# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
+				# value = type(self)({"value":value}, _id = self._id+"."+str(key), keyattr_dynamic=True)
 				pass
 				# value = type(self)({"value":value}, _id = str(self._id)+"."+key, keyattr_dynamic=True)
 				pass
-				newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True, skip_fetch=True, keypath_separator = keypath_separator)
+				newobj = type(self)(_id = self._id+"."+str(key), keyattr_dynamic=True, skip_fetch=True, keypath_separator = keypath_separator)
 				# newobj.value = value
 				# newobj.value = value
 				newobj.__setitem__("value",value,origin='setitem:new_value2', *a, **kw)
@@ -688,7 +688,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# print("set 3333333", value, key, )
 			# print(key in self,"!!!!!!!!!!!!", type(value))
 			if isinstance(value, dict) and not isinstance(value, type(self)):
-				# value = self._cast(value, key = self._id+"."+key)
+				# value = self._cast(value, key = self._id+"."+str(key))
 				# print("DOUBLE??????????")
 				value = self._cast(value, key = key)
 			# self.__dict__[key]=f
@@ -753,11 +753,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# 	data["_id"] = key
 			
 			# return obj_type(
-			target = self._id if key is None else self._id+"."+key
+			target = self._id if key is None else self._id+"."+str(key)
 			# print("TTTTTTTT:",target)
 			# return xoBenedict(
 			return obj_type(
-				# value,_id = self._id+"."+key,
+				# value,_id = self._id+"."+str(key),
 				value, _id = target,
 				**data
 				# _parent = self,
@@ -765,7 +765,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		elif isinstance(value, list):
 			for index, item in enumerate(value):
 				f = self._cast(item)
-				f._id = self._id+"."+key+"."+str(index)
+				f._id = self._id+"."+str(key)+"."+str(index)
 				value[index] = f
 		# final = obj_type(
 		#         {"value":value},
@@ -1253,13 +1253,12 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# return "{"+", ".join((f"\"{key}\": {val}") for key, val in fastItems if len(key)>0 and key[0]!="_")+"}"
 		# return "{"+", ".join((f"\"{key}\": {val}") for key, val in self.items(fast = True) if len(key)>0 and key[0]!="_")+"}"
 		result = {}  # Start with an empty dictionary to store the key-value pairs
-
 		# Iterate over each key-value pair in self.items()
 		for key, val in self.items(fast=True):
 			# Check if the key is not empty and doesn't start with "_"
-			if len(key) > 0 and key[0] != "_":
+			if len(str(key)) > 0 and str(key)[0] != "_":
 				# Add the key-value pair to the result dictionary
-				if isinstance(val,dict) and "value" in val and len(val)==1:
+				if isinstance(val,dict) and "value" in val and len(val.keys())==1:
 					# print("@@@@@@@@@@@@@@@@",val["value"])
 					result[key] = f'{val["value"]!r}'
 				else:
@@ -1866,7 +1865,7 @@ class xoRedis(xoBenedict):
 		# if key == '__dir__':
 		# 	# return res without keys ['ignore','_pointer','_dict']
 		# 	return {k:v for k,v in res.items() if k not in ['ignore','_pointer','_dict']}
-		fkey = self._id+"."+key
+		fkey = self._id+"."+str(key)
 		if "value" == key:
 			fkey = self._id
 		if "value" == key or "value" in res:
@@ -1930,16 +1929,16 @@ class xoRedis(xoBenedict):
 		if key != "value" and not isinstance(value, xoBenedict):
 			# self._safeUpdate(key, value)
 			if debug:
-				print("::: SAVING TO REDIS",self._id+"."+key,value)
+				print("::: SAVING TO REDIS",self._id+"."+str(key),value)
 			val = pk.dumps(value)
-			res2 = self._root._redis.set(self._id+"."+key, val)
+			res2 = self._root._redis.set(self._id+"."+str(key), val)
 			if not skip_publish:
-				self._safePublish(self._id+"."+key, value)
+				self._safePublish(self._id+"."+str(key), value)
 		return res
 	
 	def __setitemx__(self, key, value, doubleSkip = False, *args, **kwargs):
 		skip = False
-		# print("XSetting", self._id+"."+key, "to",type(value),)# value,)
+		# print("XSetting", self._id+"."+str(key), "to",type(value),)# value,)
 		r = self._root._redis
 		if key == "value":
 			val = pk.dumps(value)
@@ -1968,17 +1967,17 @@ class xoRedis(xoBenedict):
 			# if (key not in self or self[key] != value) and not isinstance(value, dict):
 			if not isinstance(value, dict):
 				# val = pk.dumps(value)
-				# print("RRRRRRRRRRRRRRRRRRR1111111",isinstance(value, dict),value,self._id+"."+key,val)
-				# res = r.set(self._id+"."+key, val)
-				# print("XXXXX1111111:",self._id+"."+key)
-				# r.publish(self._id+"."+key, val)
+				# print("RRRRRRRRRRRRRRRRRRR1111111",isinstance(value, dict),value,self._id+"."+str(key),val)
+				# res = r.set(self._id+"."+str(key), val)
+				# print("XXXXX1111111:",self._id+"."+str(key))
+				# r.publish(self._id+"."+str(key), val)
 				# skip = True
 				pass
 				# notAgain = True
 			else:
-				if type(value) == dict:	print("is dict passing?",type(value),self._id+"."+key)
+				if type(value) == dict:	print("is dict passing?",type(value),self._id+"."+str(key))
 			# print("-----}}}}}}}}}}}")
-			# print("nv",self._id+"."+key,"T:",type(value))
+			# print("nv",self._id+"."+str(key),"T:",type(value))
 		# if value is None:
 		# 	value = [None]
 		if value != None:
@@ -2040,7 +2039,7 @@ class FreshRedis(xoBenedict):
 		fullkey = fullkey[:-6] if ".value" == fullkey[-6:] else fullkey
 		res = self._root._redis.set(fullkey, val)
 		if debug: print(f" : : : {res} SAVING TO REDIS",fullkey,newVal)
-		# self._safePublish(self._id+"."+key, val) # maybe better to send pk and unpack
+		# self._safePublish(self._id+"."+str(key), val) # maybe better to send pk and unpack
 		if "skip_publish" not in kwargs:# and 'origin' not in kwargs:
 		# if "skip_publish" not in kwargs:
 			# print("PRE PUBLISH")
@@ -2664,4 +2663,12 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 '''
 
+
+'''
+#FIX:
+- value returns {} instead of None if it doesnt exits
+- ({dict}) and := dict not working as should
+- fix flatten() not working for xoBranch
+- 
+'''
 
