@@ -19,6 +19,9 @@ funMode = True # send keys to others, even if they dont have them yet
 
 counter =0
 
+keypath_separator = "."
+
+
 
 
 class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
@@ -45,7 +48,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		else:
 			self._root = xoBenedict._root
 
-		
+		# self.__dict__ = DictWrapper(self.__dict__, castFunc = self.__dict_wrap__)
 		self._subscribers = []
 		self._isRoot = True
 		
@@ -89,6 +92,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		counter += 1
 		# print("iiiiiiiiiiiiiiiiiiiiiiiiiiiii",":::",my_c,":::",len(args))
 		kwargs["keyattr_dynamic"] = True
+		kwargs["keypath_separator"] = keypath_separator
+		
 		setRoot = False
 		# if "_parent" not in kwargs:
 			# print("RRRRRRRRRRRRRRRRRRRRRRRRooooooooooot")
@@ -135,7 +140,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				if True:
 					#TODO: more general string to dict parser
 					# print("JJJJJJJJSSSSSSSSSSSSSSSSSS")
-					# print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
+					print("JJJJJJJJSSSSSSSSSSSSSSSSSS",type(args[0]),args[0])
 					# args[0] = self.from_json(args[0])
 					args = [ast.literal_eval(args[0].strip("'<>() ")) ]
 					# args = [json.loads(repr(args[0]).strip("'<>() ").replace("\\\'","\\\\'"))]#..replace('\'', '\"'))]
@@ -280,17 +285,18 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 
 	def __call__(self,*args, **kwargs):
-		print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL")
+		print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL",args, kwargs)
 		if "value" in self and "function" in str(type(self["value"])):
+			print("::: Calling inner function")
 			# return self["value"](*args, **kwargs)
 			f = self.value
 			# print(":::::::::::::::",self._id,type(f),f, args, kwargs)
 			funcRes = f.__call__(*args, **kwargs)
 			return funcRes
 		else:
-			entries = type(self)(kwargs,_override=True, keyattr_dynamic=True)
+			# entries = type(self)(kwargs,_override=True, keyattr_dynamic=True)
 
-			self.update(entries)
+			# self.update(entries)
 			if len(args) == 1:
 				if isinstance(args[0], dict):
 					for key, value in args[0].items():
@@ -395,16 +401,33 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			return target
 		return super().__getitem__(key)
 
+
+	# def __dict_wrap__(self, *args, **kwargs):
+	# 	print("!!!!!!!!!!")
+	# 	legacy = False
+	# 	if legacy:
+	# 		return dict(super())
+	# 	return self.flatten(*args, **kwargs)
+
+	def flatten(self, sep=None,rep="/", fast=False, *a, **kw):
+		if fast: return super().flatten(sep if sep else "/") if sep else super().flatten()
+		def fix(key):
+			key = key.replace(rep, sep if sep else keypath_separator)
+			if len(key)>6 and key[-6:] == keypath_separator + "value":
+				key = key[:-6]
+			return key
+		return {fix(k):v for k,v in super().flatten(rep).items()}
+	
 	def items(self, fast = False):
 		# for key, value in BaseDict.items(self):
 		for key, value in BaseDict.items(self):
 			
 			# print("i",key,type(value))
-			if fast:
+			if fast or True:
 				# print("FAST")
 				yield (key, value)
 			else:
-				print("SLOW", type(value))
+				print("SLOW", type(value),value,key)
 				yield (key, self._cast(value, key = key))
 
 	# def __getitem__(self, key):
@@ -452,9 +475,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# res = super().__setitem__(key, value)
 		# print("SSSSSSSSS",key,value,skip,kw)
 		if key != 'value' and value != {} and "__onchange__" in self.__dir__() and "skip_change" not in kw:
+			#THIS IS NOT THE FUNCTION YOUR LOOKING FOR
 			res = self.__onchange__(self._id+"."+key, value,*a,**kw)
 			if res != None:
 				value = res
+			
 			
 
 		if key == "value":
@@ -514,8 +539,13 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					self._updateSubscribers_(value)
 
 				if "__onchange__" in self.__dir__() and "skip_change" not in kw:
-					res = self.__onchange__(self._id+"."+key, value, origin2 = "setitem:value",*a,**kw)
+					res = self.__onchange__(self._id, value, origin2 = "setitem:value",*a,**kw)
 					if res != None:
+						if not isinstance(value, bool):
+							# if results are bool continue as normally,
+							# but if results are not bool, and onchange returned False
+							# Then do not continue with setting the value
+							if res == False: return self
 						value = res
 
 		# elif key == 'value' and value != {} and "__onchange__" not in self.__dir__() and "skip_change" not in kw:
@@ -600,7 +630,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					pass
 					# value = type(self)({"value":value}, _id = self._id+"."+key, keyattr_dynamic=True)
 					pass
-					newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True)
+					newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True , keypath_separator = keypath_separator)
 					# newobj.value = value
 					# newobj.__setitem__("value",value,origin='setitem:new_value')
 					newobj.__setitem__("value",value,**kw)
@@ -611,7 +641,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				pass
 				# value = type(self)({"value":value}, _id = str(self._id)+"."+key, keyattr_dynamic=True)
 				pass
-				newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True, skip_fetch=True)
+				newobj = type(self)(_id = self._id+"."+key, keyattr_dynamic=True, skip_fetch=True, keypath_separator = keypath_separator)
 				# newobj.value = value
 				# newobj.value = value
 				newobj.__setitem__("value",value,origin='setitem:new_value2', *a, **kw)
@@ -1340,7 +1370,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			if not self._keyattr_dynamic:
 				raise AttributeError(attr_message) from None
 			# self.__setitem__(attr, {})
-
+			print("@@@@@@",self._id+"."+attr)
 			self.__setitem__(attr, type(self)(_id = self._id+"."+attr), origin="get_attr")
 			# self.__setitem__(attr, xoBenedict())
 			return self.__getitem__(attr)
@@ -1977,7 +2007,7 @@ class Fresh(xoBenedict):
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
 		'''This function is called whenever a value of a key changes'''
-		print(f" : : : : {fullkey} CHANGING TO {str(value).upper()}",args, kwargs)
+		print(f" : : : : {fullkey} CHANGING TO !!!{str(value).upper()}!!!",args, kwargs)
 		# The value you return will be passed on as if it was the original value.
 		return "!!!"+str(value).upper()+"!!!"
 
@@ -2381,14 +2411,14 @@ class FreshRedis(xoBenedict):
 	
 
 
-
-class xoMetric(FreshRedis):
+class xoBackend(FreshRedis): # change or add backends!
+	pass
+class xoMetric(xoBackend):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
 		# print("PPPPPPPPPPPPPPPPPPPP ",self._id,fullkey,value, args, kwargs)
-		
 		# key = fullkey[len(self._id+"."):]
 		# if self[key].value == value:
 		# 	print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
@@ -2562,12 +2592,20 @@ def testing():
 # print(xo)
 # print("FINISH")
 # print("GOODBYE")
+
+
+def pnr(p, *a,**kw):
+	print(p,a,kw)
+	if a == () and kw == {}:
+		return p
+	return [p,a,kw]	
+
+
 if __name__ == '__main__':
 	testing()
 
 # Hint: Ctrl+Alt+B to open outline
 
-	
 
 '''
 
@@ -2578,11 +2616,11 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 # OG
 from colorama import Fore as color
 def msn(self, color=color,c="yellow", *a,**kw):
-    self = self._root
-    self.msg @= self.fig
-    c = color.__getattribute__(c.upper())
-    while True:
-            self.msg = c+input(c+"Chat: "+color.WHITE)
+	self = self._root
+	self.msg @= self.fig
+	c = color.__getattribute__(c.upper())
+	while True:
+			self.msg = c+input(c+"Chat: "+color.WHITE)
 up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 
@@ -2592,10 +2630,10 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 from colorama import Fore as color
 from pyfiglet import figlet_format as figlet
 def colorfig(v, figlet_format=figlet,Fore=color,c='yellow'):
-    c = Fore.__getattribute__(c.upper())
-    if "\x1b" in v:
+	c = Fore.__getattribute__(c.upper())
+	if "\x1b" in v:
 	c, v = v[:5],v[5:]
-    return c+figlet_format(v)+Fore.WHITE
+	return c+figlet_format(v)+Fore.WHITE
 
 
 up.fig = lambda v,c = 'yellow', Fore=color, figlet_format=figlet,colorfig=colorfig,*a,**kw: print(colorfig(v, figlet_format, Fore, c=c))
@@ -2605,20 +2643,20 @@ up.fig = lambda v,c = 'yellow', Fore=color, figlet_format=figlet,colorfig=colorf
 
 from colorama import Fore as color
 def msn(self, color=color,c="yellow", *a,**kw):
-    self = self._root
-    self.msg @= self.fig
-    c = color.__getattribute__(c.upper())
-    while True:
-        i = input(c+"Chat: "+color.WHITE)
-        if len(i)>1 and i[0] == ":" and len(i.split(":"))>=3:
-            try:
-                c, i = color.__getattribute__(i.split(":")[1].upper()), ":".join(i.split(":")[2:])
-            except:
-                print(color.RED+i.split(":")[1]+" is not a correct color")
-                continue
-        final = c+i
-        if len(i)>0:
-            self.msg = final
+	self = self._root
+	self.msg @= self.fig
+	c = color.__getattribute__(c.upper())
+	while True:
+		i = input(c+"Chat: "+color.WHITE)
+		if len(i)>1 and i[0] == ":" and len(i.split(":"))>=3:
+			try:
+				c, i = color.__getattribute__(i.split(":")[1].upper()), ":".join(i.split(":")[2:])
+			except:
+				print(color.RED+i.split(":")[1]+" is not a correct color")
+				continue
+		final = c+i
+		if len(i)>0:
+			self.msg = final
 
 
 up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
