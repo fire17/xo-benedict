@@ -1,10 +1,12 @@
 
 
 
+from functools import reduce
 import traceback
 
 import inspect
 from xo import xoBenedict
+import dill as pk
 
 class xoDeque(xoBenedict):
 	_deque = []
@@ -30,14 +32,93 @@ class xoDeque(xoBenedict):
 		return self.getQueue(-1)
 	def first(self):
 		return self.getQueue(0)
-		
+
+
+import re
+
+def remove_brackets(input_string):
+	return re.sub(r'\[.*?\]', '', input_string)
+
+def remove_round_brackets(input_string):
+	return re.sub(r'\(.*?\)', '', input_string)
+
+def _flatten_key(base_key, key, separator):
+	if base_key and separator:
+		return f"{base_key}{separator}{key}"
+	return key
+
+
+def _flatten_item(d, base_dict, base_key, separator, b=-1,current=False, hide_place = False):
+	new_dict = base_dict
+	print("ddddddddd",d,type(d),d._id if hasattr(d,"_id") else None, d._bid if hasattr(d,"_bid") else None)
+	keys = list(d.keys())
+	for key in keys:
+		print("KKKK",key)
+		value = d[key]
+		# if hasattr(value,"_bid"):
+		# 	print("!!!!!!!!!!!!!!!",key,b,value._bid)
+		# 	# key = value._id.split(".")[-1]
+		# 	# key = key+f"[{value._bid}]"
+		# 	# key = key+f"[{b}]"
+		# 	print("::::::::::::::::",key)
+		# else:
+		# 	print("xxxxxxx",key, type(value),value,"xxxxxxx")
+		new_key = _flatten_key(base_key, key, separator)
+		print("$$$$$$$$$$$",new_key)
+		if isinstance(value,dict):
+			if not current and hasattr(value,"_branch") and len(value._branch)>0:
+				bcount = 0
+				for br in value._branch:
+					# place = f"({bcount+1}%-%--%-%{len(value._branch)})"
+					# place = f" {place}" if place != "" and place != "(1/1)" else ""
+					new_value = _flatten_item(
+						br, base_dict=new_dict, base_key=new_key+(f"[{bcount}]"), separator=separator, b = bcount, hide_place = hide_place
+						# br, base_dict=new_dict, base_key=new_key+(place), separator=separator, b = bcount
+					)
+					new_dict.update(new_value)
+					bcount+=1
+			else:
+				# place = f"({value._bid}%-%--%-%{len(value._branch)})" if not hide_place and hasattr(value,"_bid") else ""
+				# place = f" {place}" if place != "" and place != "(1/1)" else ""
+				new_value = _flatten_item(
+					value, base_dict=new_dict, base_key=new_key+(f"[{value._bid}]" if not hide_place and hasattr(value,"_bid") else ""), separator=separator, b = b,
+					# value, base_dict=new_dict, base_key=new_key+(place), separator=separator, b = b,
+					current = current, hide_place = hide_place
+				)
+				new_dict.update(new_value)
+			continue
+		# place = f"({value._bid}%-%--%-%{len(value._branch)})" if hasattr(value,"_bid") and not hide_place and not current else ""
+		# place = f" {place}" if place != "" and place != "(1/1)" else ""
+		new_key = new_key +f"[{value._bid}]" if hasattr(value,"_bid") and not hide_place and not current else new_key
+		# new_key = new_key + place
+		print("NNNNNNNNNNN",new_key,b,)
+		if hide_place and remove_brackets(new_key) not in new_dict:
+			new_dict[remove_brackets(new_key)] = value
+		else:
+			if new_key in new_dict:
+				raise KeyError(f"Invalid key: {new_key!r}, key already in flatten dict.")
+			new_dict[new_key] = value
+	return new_dict
+
+
+def flatten(d, current=False, hide_place=False, separator="_"):
+	new_dict = {}
+	if not current and hasattr(d, "_branch") and len(d._branch)>0:
+		bcount = 0
+		for b in d._flatten_item(d, base_dict=new_dict, base_key="", separator=separator, hide_place = hide_place):
+			new_dict.update(_flatten_item(b, base_dict=new_dict, base_key="", separator=separator, b=bcount), hide_place = hide_place)
+			bcount += 1
+		return new_dict
+	return _flatten_item(d, base_dict=new_dict, base_key="", separator=separator, b=0, current=current, hide_place = hide_place)
+
 class xoBranch(xoDeque):
 	_branch = []
 	_bid = -1
 	_parent=None
-	_marker = -1
+	_marker = 0
+	_floor_branch = None
 	# def __init__(self, xoType=xoDeque, *a, **kw):
-	def __init__(self,_bid=0,_parent=None,new = False, *a, **kw):
+	def __init__(self,_bid=0,_parent=None,init = False, *a, **kw):
 		self._branch = []
 		self._bid = _bid
 		self._parent=_parent
@@ -47,6 +128,7 @@ class xoBranch(xoDeque):
 		elif "value" in kw:
 			self._deque.append(kw["value"])
 		super().__init__(*a, **kw)
+		
 		if self._id[-1] == "]":
 			self._id = "[".join(self._id.split("[")[:-1])+"["+str(self._bid)+"]"
 			self._bid = self._marker
@@ -59,12 +141,63 @@ class xoBranch(xoDeque):
 			if setMarker:
 				self._parent._marker = self._bid
 				# This moves the marker
-
+		if not init and "value" not in self.keys() and ('value' not in kw and "skip_change" not in kw):
+			# Not expecting change
+			parent = self
+			if self._parent != None:
+				parent = self._parent
+			# 	parent._deque.append(value)
+			# else:
+			# 	self._deque.append(value)
+			if self._parent != None:
+				print("YYYYYYYYY222222222")
+				newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._parent._branch), init =True)
+				self._parent._bid = len(self._parent._branch)-1
+			else:
+				print("NNNNNNNNNN3333333333")
+				newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._branch), init = True)
+		elif "value" in kw and "skip_change" in kw:
+			v = kw.pop("value")
+			_id = kw.pop("_id")
+			self.__setitem__("value",v, *a, **kw)
 		# elif self._isRoot:
 		#     self.current()._branch.append(self)
 		# elif self._branch == []:
 		#     self._branch.append(self)
 		#     self.current()._branch.append(self)
+	
+	# def __ifloordiv__(self, other):
+	# 	# change self.on_branch
+	# 	print(self._floor_branch, self._parent._floor_branch)
+	# 	if self._parent != None and self._parent._floor_branch != None:
+	# 		print("########")
+	# 		self._parent._branch[self._parent._floor_branch].__setitem__("value", other, skip_change=True)
+	# 		self._parent._floor_branch = None
+	# 		# return res
+		
+	# 	print("??????????22222222")
+	# 	res =  self.__setitem__("value",other, skip_change=True)
+	# 	return res
+	
+	@classmethod
+	def _import(cls, d):
+		if isinstance(d, bytes):
+			return cls().import_branches(pk.loads(d))
+		return cls().import_branches(d)
+	
+	def pr(d):
+		d = d.flatten()
+		[print(k,":",v) for k,v in d.items()]
+
+	def right(self,times=1, cycle=False, end = False):
+		if end: return self.moveMarkerToEnd()
+		return self.moveRight(times,cycle)
+	def home(self, *a,**kw):return self.left(start=True,*a,**kw)
+	def end(self,*a,**kw):return self.right(end=True,*a,**kw)
+	def left(self,times=1, cycle=False, end = False, start=False):
+		if end or start: return self.moveMarkerToStart()
+		return self.moveLeft(times,cycle)
+	
 	def moveRight(self,times=1, cycle = False):
 		print(f"::: Moving Marker +{times} ", end="")
 		if len(self._branch) == 0: return
@@ -75,7 +208,8 @@ class xoBranch(xoDeque):
 			self.moveMarker(-1)
 		else:
 			self.moveMarker((self._marker + times)% len(self._branch))
-
+		return self.current()
+	
 	def moveLeft(self,times=1, cycle = False):
 		print(f"::: Moving Marker -{times} ",end="")
 		if len(self._branch) == 0: return
@@ -86,27 +220,39 @@ class xoBranch(xoDeque):
 			self.moveMarker(0)
 		else:
 			self.moveMarker((self._marker - times)% len(self._branch))
+		return self.current()
 
 	def moveMarkerToStart(self):
 		self.moveMarker(0)
+		return self.current()
 	def moveMarkerToEnd(self):
 		self.moveMarker(len(self._branch)-1)
+		return self.current()
 
 	def moveMarker(self, newMarker):
 		if len(self._branch) == 0:
 			return 
-		self._marker = newMarker
-		self._marker = self._marker % len(self._branch)
+		# self._marker = newMarker
+		print(type(len(self._branch)), type(newMarker), newMarker, self._branch)
+		self._marker = newMarker % len(self._branch)
+		# self._floor_branch = self._marker
 		print("::: Marker moved to ",newMarker)
 		self._id = "[".join(self._id.split("[")[:-1])+"["+str(self._marker)+"]"
 		self._bid = self._marker
 		# if self._parent != None:
 		#     self._parent._marker = newMarker
+		return self.current()
+
+	def get(self, key, default=None):
+		res = self.__getattr__(key)	
+		if res == None:
+			return default
+		return res
 
 	def __len__(self):
-		if "value" in self.current():
-			if hasattr(self.current().value,"__len__"):
-				return len(self.current()["value"])
+		# if "value" in self.current():
+		# 	if hasattr(self.current().value,"__len__"):
+		# 		return len(self.current()["value"])
 			
 		
 		return len(self._branch) if len(self._branch) > 0 else len(self.keys())
@@ -117,13 +263,26 @@ class xoBranch(xoDeque):
 		print("CREATING A NEW BRANCH",self._id,":",_id,value)
 		# newBranch = type(self)(_id = self._id,_bid=len(self._branch))
 		# newBranch.value = value
+		# if "value" not in self.keys() and value != "____init____":
+		# 	self["value"] = "____init____"
+			# self.pop("value")
 		parent = self
 		if self._parent != None:
 			parent = self._parent
 			parent._deque.append(value)
 		else:
 			self._deque.append(value)
+		def isEmpty(obj):
+			print("XXXXXXX",obj.keys(),len(obj.keys()))
+			return len(obj.keys()) == 0
+			# print("DELETING EMPTY BRANCH!!!")
+
 		if self._parent != None:
+			if len(self._parent._branch)>0 and isEmpty(self._parent._branch[-1]):
+				print("DELETING EMPTY BRANCH!!!")
+				self._parent._branch.pop(-1)
+			else:
+				print("NOT DELETING EMPTY BRANCH!!!", self._parent._branch[-1],)
 			print("YYYYYYYYY")
 			newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._parent._branch),value = value)
 			self._parent._bid = len(self._parent._branch)-1
@@ -169,7 +328,15 @@ class xoBranch(xoDeque):
 		
 	
 	def __getitem__(self, item, *args, **kwargs):
-		print("GGGGGGG",item,args,kwargs)
+		# if isinstance(item, tuple) or isinstance(item,list):
+		# 	# return reduce(lambda x, y: x[y], [1,0,1], [[1],[[0,17],2]])
+		# 	return reduce(lambda x, y: x[y], list(item), self)
+		# else:
+		# 	print("<<<<<<<<<<<<<<<<<")
+		# 	print("<<<<<<<<<<<<<<<<<")
+		# 	print("<<<<<<<<<<<<<<<<<")
+		# 	print("<<<<<<<<<<<<<<<<<",type(item))
+		print("\nGGGGGGG",item,args,kwargs)
 		if item == '_branch':
 			print("!!!!!!!!!!!!!!!!!!!!")
 		if "final" in kwargs:
@@ -188,10 +355,23 @@ class xoBranch(xoDeque):
 			kwargs["final"] = True
 			return self.current().__getattr__(item, *args, **kwargs)
 		else:
+			def canBeInt(string):
+				try:
+					print(f"@{string}@")
+					return int(string)
+				except:
+					# traceback.print_exc()
+					return False
+			isInt = canBeInt(item)
+			if isInt is not False:
+				item = isInt
+			print("ISISISISIS", isInt, item, len(self._branch)==0)
 			if isinstance(item, int):# and item < len(self._branch):
-				if item == 0 or item == -1 and len(self._branch)==0:
+				if (item == 0 or item == -1) and len(self._branch)==0:
+					print("!!!!!!!!!!!!!!!!!!!!!!!",item)
 					return self
 				if item >= len(self._branch) or item < -1 * len(self._branch):
+					print("!!!!!!!!!!!!!!!!!!!!!!!222222222",item)
 					class OutOfIndexError(Exception):
 						pass
 					calling_frame = inspect.currentframe().f_back
@@ -208,18 +388,108 @@ class xoBranch(xoDeque):
 						raise OutOfIndexError(f"Index {item} is out of range for an object with {len(self._branch)} branches\n(line {calling_line_number}): {error_line}\n{'^'*len(error_line)}")
 					raise OutOfIndexError(f"Index {item} is out of range for an object with {len(self._branch)} branches\n({calling_file_name}:line {calling_line_number})")
 				
+				print("FFFFFFFFFFFFFFFFF",item)
+				# self.moveMarker(item)
+				self._floor_branch = item
+				return self._branch[item]
 				return self._branch[item]
 			else:
+				print("???????????",item, self._marker, len(self._branch))
+				# self.moveMarker(item)
 				if isinstance(item,slice):
 					return self._branch[item]
 				self.current().__setattr__(item, type(self)( _bid = 0 , _id = self._id+"."+item, *args, **kwargs))
 		kwargs["final"] = True
 		return self.current().__getattr__(item,*args, **kwargs)
-		
+	
+	def place(self):
+		return f"[{self._marker+1}/{len(self._branch) if len(self._branch)>0 else 1}]"
+
+	def flatten(self, sep=None,rep="/", current=False, init=True, hide_place=False, *a, **kw):
+		def fix(key):#,counter):
+			key = key.replace(rep, sep if sep else self.keypath_separator).replace("%-%--%-%","/")
+			if len(key)>6 and key[-6:] == self.keypath_separator + "value":
+				key = key[:-6]
+			# counter[0]+=1
+			# print("ccccccccccccccc",counter)
+			return key
+		if not init:
+			# final = flatten(self,current,rep).items()
+			final = flatten(self,current,hide_place, rep).items()
+			print("FFFFFFFFFFF",final)
+			return final
+		if current==True:
+			return { fix(k):v for k,v in self.current().flatten(sep,rep,current,False, hide_place)}
+		final = []
+		for br in self._branch:
+			for k,v in br.flatten(sep,rep,current, False, hide_place):
+				final.append((k,v))
+		return {fix(k):v for k,v in final}
 		
 	
+	def export_branches(self, key = None):
+		return self.flatten()
+	
+	def import_branches(self, flat_branches):
+		[self[remove_brackets(k)].set("value",v) for k,v in flat_branches.items()]
+		return self
+	
+	def clone(self, *a, **kw):
+		return self(type)().import_branches(self.export_branches())
+
+	def keys(self,*a,**kw):
+		print("iiiiiiiii",id(self), id(self.current()))
+		if id(self) != id(self.current()):
+			return self.current().keys()
+		return super().keys()
+	
+	def clone(self,*a,**kw):
+		print("iiiiiiiii",id(self), id(self.current()))
+		if id(self) != id(self.current()):
+			return self.current().clone()
+		return super().clone()
+	def __rep__(self):
+		return self.pr()
 	def __setitem__(self, item, value, *args, **kwargs):
-		print("SSSSSSSS",item, value, args, kwargs)
+		def canBeInt(string):
+			try:
+				print(f"@{string}@")
+				return int(string)
+			except:
+				# traceback.print_exc()
+				return False
+		# if isinstance(item, str) and len(item.split(".")) > 1:
+		# 	return self.__setitem__(item.split("."), value, *args, **kwargs)
+		# if isinstance(item, tuple) or isinstance(item,list):
+		# 	# return reduce(lambda x, y: x[y], [1,0,1], [[1],[[0,17],2]])
+		# 	if canBeInt(list(item)[-1]) is not False:
+		# 		return  reduce(lambda x, y: x[y], list(item)[:-1], self)._parent._branch[int(list(item)[-1])].__setitem__("value",value, *args, **kwargs)
+		# 	return reduce(lambda x, y: x[y], list(item)[:-1], self).__setitem__(list(item)[-1],value, *args, **kwargs)
+		print("SSSSSSSS",item, type(value),value, args, kwargs)
+		
+		isInt = canBeInt(item)
+		if isInt is not False: item = isInt
+		print("ISISISISIS", isInt, item, len(self._branch)==0)
+		if isinstance(item, int) :
+			self.moveMarker(item)
+			self._floor_branch = item
+			print("PPPPPPPP",self._id, self._parent)
+			# return self._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs) 
+			# res = self.current()._parent._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs) 
+			# res = self.__setitem__('value',value,skip_change=True, *args, **kwargs)# skip_change="skip_change"in kwargs) 
+			res = self.__setitem__('value',value,skip_change=True, *args, **kwargs)# skip_change="skip_change"in kwargs) 
+			self.end()
+			if hasattr(super(),'__onchange__'):
+				print("HHHHHHHHHHHHHHHHHHH")
+				print("HHHHHHHHHHHHHHHHHHH")
+				print("HHHHHHHHHHHHHHHHHHH")
+				print("HHHHHHHHHHHHHHHHHHH",item)
+				return super().__onchange__(self._id, value, *args, **kwargs):
+			return res
+			return self.current()._parent._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs) 
+		elif self._floor_branch == None:
+			self.end()
+			
 		if "current" not in kwargs and "final" not in kwargs:
 			print("/////////")
 			kwargs["current"] = True
@@ -235,6 +505,7 @@ class xoBranch(xoDeque):
 			# return self.current()._deque
 			return self.current().__setitem__(item, value, *args, **kwargs)
 		return super().__setitem__(item, value,*args, **kwargs)
+
 
 	# def __getattr__(self, item, *args, **kwargs):
 	#     if "final" in kwargs:
@@ -284,3 +555,56 @@ class xoBranch(xoDeque):
 		return self.current().getBranch(-1)
 	def first(self):
 		return self.current().getBranch(0)
+	
+	def __str__(self):
+		if "value" in self and len(self.keys()) == 1:
+			return f'{self.value!r}'
+		
+
+		result = {}  # Start with an empty dictionary to store the key-value pairs
+		# Iterate over each key-value pair in self.items()
+		for key, val in self.items(fast=True):
+			# Check if the key is not empty and doesn't start with "_"
+			if len(str(key)) > 0 and str(key)[0] != "_":
+				# key += " "
+				# Add the key-value pair to the result dictionary
+				if isinstance(val,dict) and "value" in val and len(val.keys())==1:
+					# print("@@@@@@@@@@@@@@@@",val["value"])
+					pass
+					# result[key] = f'{val["value"]!r}'
+					pass
+					# result[key] = val["value"]
+					result[key] = val
+				else:
+					# print(":::",val)
+					# result[key] = val
+					pass
+					# result[key] = f'{val!r}'
+					pass
+					result[key] = val
+
+		if "value" in result:
+			val = result.pop("value")
+			result = {"value":val,**result}
+
+		# # Convert the dictionary to a JSON-like string
+		# output = "{" + ", ".join(f"\"{key}\": {val}" for key, val in result.items()) + "}"
+
+		# # Return the JSON-like string
+		# return output
+	
+		# final = "{" + ", ".join([f"\"{k}\" {str(v.place() if hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v.__str__()}" for k,v in self.items()]) + "}"
+		final = "{" + ", ".join([f"\"{k}\" {str(v.place() if hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v!r}" for k,v in result.items()]) + "}"
+		# for k in self.keys():
+		# 	final += 
+		return final
+		# return "{"+super().__str__()[1:-1]+str(self.place())+"}"
+
+
+
+
+
+# bx = xoBranch()
+# bx.a = 1111111
+# bx.a = 2222222
+# bx.flatten()

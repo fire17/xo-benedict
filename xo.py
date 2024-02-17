@@ -891,12 +891,17 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		return self._cast(super().__floordiv__(other))
 
 	def __ifloordiv__(self, other):
+		return self.__setitem__("value",other, skip_change=True)
 		if "value" in self:
 			self["value"] //= other
 		else:
 			super().__ifloordiv__(other)
 		return self
-
+	def unpickle(self):
+		if "value" in self:
+			return pk.loads(self.value)
+	def pickle(self):
+		return pk.dumps(self.value) if "value" in self else pk.dumps(self)
 	def __mod__(self, other):
 		if "value" in self:
 			return self["value"] % other
