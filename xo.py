@@ -285,11 +285,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 
 	def __call__(self,*args, **kwargs):
-		print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL",args, kwargs)
+		# print("ccccccccccccccCCCCCCCALLLLLLLLLLLLLLLLLL",args, kwargs)
 		if "value" in self and "function" in str(type(self["value"])):
-			print("::: Calling inner function")
 			# return self["value"](*args, **kwargs)
 			f = self.value
+			if debug: print("::: Calling inner function", f)
 			# print(":::::::::::::::",self._id,type(f),f, args, kwargs)
 			funcRes = f.__call__(*args, **kwargs)
 			return funcRes
@@ -576,7 +576,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	# return super().__setitem__(key+".value", self._cast(value))
 		# 	return super().__setattr__(key+".value", value)
 		'''
-
+		print("......................")
 		obj_type = type(self)
 		# obj_type()
 		# print("set KKKKKKKK",key)
@@ -605,7 +605,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# if super().__getattribute__(key)._type == type(self):
 					# print(isinstance(self[key],type(self)),"$$$$$$$$$$$")
 					# print("%%%%%%%%%%%%%%%%%%%%")
-					if value != None and not skip:
+					# if value != None and not skip:
+					if not skip: # None Support
 						# pass
 						# print("HERERERERERE111111")
 						# self[key].value = value
@@ -650,11 +651,16 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
-			# print("value", value)
-			# print("key", key)
+			print("value", value)
+			print("key", key)
 			if key in self and key != "value":
-				if not isinstance(self[key],dict):
-					# print("#########22222",key)
+				if value is None:  #Added None support
+					# if not hasattr(self,"value"):
+					self[key].value = None
+					# else:
+
+				elif not isinstance(self[key],dict):
+					print("#########22222",key)
 					self[key] = value
 					# self.__dict__[key] = value
 					self.__dict__[key] = self[key]
@@ -737,6 +743,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		Cast a dict instance to a benedict instance
 		keeping the pointer to the original dict.
 		"""
+
 		if type(self) == type(value) or key == None:
 			return value
 		
@@ -753,19 +760,20 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# 	data["_id"] = key
 			
 			# return obj_type(
-			target = self._id if key is None else self._id+"."+str(key)
-			# print("TTTTTTTT:",target)
+			target = self._id if key is None or key == '' else self._id+"."+str(key)
+			print("TTTTTTTT:",target)
 			# return xoBenedict(
 			return obj_type(
 				# value,_id = self._id+"."+str(key),
-				value, _id = target,
+				value=value, _id = target,
+				# value, _id = target,
 				**data
 				# _parent = self,
 			)
 		elif isinstance(value, list):
 			for index, item in enumerate(value):
-				f = self._cast(item)
-				f._id = self._id+"."+str(key)+"."+str(index)
+				f = self._cast(item, )
+				f._id = (self._id if key is None or key == '' else self._id+"."+str(key))+"."+str(index)
 				value[index] = f
 		# final = obj_type(
 		#         {"value":value},
@@ -1298,6 +1306,66 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			return self._encode([kv for kv in self.dict().items()], "csv", **kwargs)
 		else:
 			return to_csv(self.dict()[key], **kwargs)
+	
+		
+	def show(self, t="    ", count=0, inLoop=False, ret=False):
+		# print("ssssssssssssssss..............",self._id)
+		s = ""
+		#### print("///////////",self[Expando._valueArg],type(self[Expando._valueArg]))
+		p = ""
+		val = ""
+		if "value" in self:
+				# print("1111111")
+				if "str" in str(type(self["value"])):
+						# print("11111112")
+						s = "\'"
+				val = str(self["value"])
+		# else:
+				# print("00000000000000")
+				# print("00000000000000",self._id)
+				# print("00000000000000")
+		finalval = " = " + s+str(val)+s if val is not None or True else ""
+		p = self._id.split("/")[-1] + finalval
+		tab = ""
+		for i in range(count):
+				tab += t
+
+		retList = []
+		res = []
+		p = tab+p
+		if ret:
+				# print("22222221")
+				retList.append(p)
+		else:
+				# print("22222222")
+				print(p.replace("\t", "    "))
+		for a in self:
+				# print("33333", a, type(self[a]))
+				# if "_" not in a:
+				# print("st2", s)
+				if not a.startswith("_"):
+						if isinstance(self[a], type(self)) or "dict" in str(type(self[a])):
+								# print("33334",a)
+								if ret:
+										# print("33335555",a)
+										res = self[a].show(count=count+1, ret=ret)
+								else:
+										# print("3333466666",a)
+										self[a].show(count=count+1, ret=ret)
+						# else:
+								# print("33337",a)
+		if count == 0 and inLoop:
+				print("\n\nPress Ctrl+C to stop whileShow()\n")
+
+		if ret:
+				# print("444444444")
+				if count == 0:
+						# print("4444444445")
+						return str(retList + res)
+				# print("55555555",count)
+				return retList + ["\n"] + res
+		# print("777777",ret,count,retList,res,)
+		# return dict(self)
 
 	@classmethod
 	def from_json(cls, s, **kwargs):
@@ -1361,6 +1429,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 	def __getattr__(self, attr):
 		# print("UUUUUUUUUUUUUUUUUUUUUUUUU")
+		if attr == "value" and ("value" not in self or self["value"] == {}):
+			return None
 		attr_message = f"{self.__class__.__name__!r} object has no attribute {attr!r}"
 		if not self._keyattr_enabled:
 			raise AttributeError(attr_message)
@@ -1374,7 +1444,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			if not self._keyattr_dynamic:
 				raise AttributeError(attr_message) from None
 			# self.__setitem__(attr, {})
-			print("@@@@@@",self._id+"."+attr)
+			# print("@@@@@@",self._id+"."+attr)
 			self.__setitem__(attr, type(self)(_id = self._id+"."+attr), origin="get_attr")
 			# self.__setitem__(attr, xoBenedict())
 			return self.__getitem__(attr)
@@ -2005,6 +2075,8 @@ class xoRedis(xoBenedict):
 				self[key].value = None
 
 
+
+
 class Fresh(xoBenedict):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
@@ -2021,7 +2093,7 @@ class FreshRedis(xoBenedict):
 	# 	return super().__init__(*args, **kwargs)
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
-		if debug: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
+		if debug or True: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
 		# Save and publish
 		# sender = hash(self._root._redis)
 		if False: #change value if you want before everything
@@ -2068,7 +2140,8 @@ class FreshRedis(xoBenedict):
 	_binded = None
 	_live = None
 	_clients = {}
-	_root:xoBenedict
+	# _root:xoBenedict
+	_root = None
 
 	def new(self,*args, **kwargs):
 		#TODO: Clear memory of current instance
@@ -2157,7 +2230,9 @@ class FreshRedis(xoBenedict):
 					try:
 						sender, res = final = pk.loads(res)
 						# sender, res = final = pk.loads(res)
+						# print("####@@@@@@",type(self._root))
 						if sender == hash(self._root._redis):
+							pass
 							# print("@@@@@@@@@@@@@@@ WORKING! SKIPPING SELF UPDATE", channel, "")
 							return 
 						# print("try res:",res)
@@ -2193,6 +2268,8 @@ class FreshRedis(xoBenedict):
 							# self.__setitem__(channel, res , skip_change = True)
 							# self.__onchange__(channel, res, skip_publish= True)
 							self.__setitem__(channel, res , skip_publish= True, sender=sender)
+							
+							
 							pass
 						# else:
 						# 	print()
@@ -2262,6 +2339,8 @@ class FreshRedis(xoBenedict):
 		# kwargs.pop("pass")
 
 		super().__init__(*args, **kwargs)
+		if type(self._root)!= type(self):
+			self._root = self
 		# if self._isRoot:
 			# print("Host",self._host)
 			# print("Port",self._port)
@@ -2412,6 +2491,22 @@ class FreshRedis(xoBenedict):
 
 	def _safePublish(self, fullkey, val, *args, **kwargs):
 		return self._normalPublish(fullkey, val, *args, **kwargs)
+
+	# def _delete_(self, *args,**kwargs):
+	def _delete_(self, element=None, *args, **kwargs):
+		idToDelete = self._id if element == None else self._id+"/"+element
+		print(" ::: Deleting ",  idToDelete,element,  args, kwargs, f" from redis ::: db: {self._db} namespace {self._namespace}")
+		target = self
+		if element is not None:
+			target = self[element]
+		# Send empy bytes to indecate it was deleted
+		# delete entire tree ? make option available
+		# target.value = bytes(), skipUpdate = False)
+		target.value = bytes()
+		r = self._root._redis
+		r.delete(idToDelete)
+		# print(" WILL DELETE ", id, args, kwargs, " FROM REDIS")
+		# Delete key on redis
 	
 
 
@@ -2671,9 +2766,10 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 '''
 #FIX:
-- value returns {} instead of None if it doesnt exits
-- ({dict}) and := dict not working as should
-- fix flatten() not working for xoBranch
-- 
+- DONE! - value returns {} instead of None if it doesnt exits
+- DONE! - fix flatten() not working for xoBranch
+- DONE! - add None support
+- ({dict}) and  =dict not working as should
+- fix _cast, update, setitem={} and call({})
 '''
 
