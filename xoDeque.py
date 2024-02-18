@@ -5,7 +5,7 @@ from functools import reduce
 import traceback
 
 import inspect
-from xo import xoBenedict
+from xo import xoBenedict, FreshRedis
 import dill as pk
 
 class xoDeque(xoBenedict):
@@ -111,12 +111,15 @@ def flatten(d, current=False, hide_place=False, separator="_"):
 		return new_dict
 	return _flatten_item(d, base_dict=new_dict, base_key="", separator=separator, b=0, current=current, hide_place = hide_place)
 
-class xoBranch(xoDeque):
+# class xoBranch(xoBenedict): # Untested but should work!
+# class xoBranch(xoDeque): # Working Structure!
+class xoBranch(FreshRedis):
 	_branch = []
 	_bid = -1
 	_parent=None
 	_marker = 0
 	_floor_branch = None
+	_deque = []
 	# def __init__(self, xoType=xoDeque, *a, **kw):
 	def __init__(self,_bid=0,_parent=None,init = False, *a, **kw):
 		self._branch = []
@@ -361,7 +364,7 @@ class xoBranch(xoDeque):
 
 	def __onchange__(self,_id, value, *a, **kw):
 		# print("ONCHANGE",a,kw)
-		print("::: Creating a new branch for ",self._id,self.place(),":",_id,value)
+		print("::: Creating a new branch for ",self._id,self.place(),":",_id,value, a,kw)
 		# newBranch = type(self)(_id = self._id,_bid=len(self._branch))
 		# newBranch.value = value
 		# if "value" not in self.keys() and value != "____init____":
@@ -405,7 +408,13 @@ class xoBranch(xoDeque):
 		# if self._parent != None:
 		#     self._parent._branch.append(newBranch)
 		# self._branch.append(newBranch)
-
+		if "skip_publish" not in kw:
+			if "__onchagne__" in super().__dir__():
+				print("!!!!!!!!!!!!")
+				super().__onchange__(_id, value, *a, **kw)
+			elif True:
+				FreshRedis.__onchange__(self, _id, value, *a, **kw)
+		print("FFFFFFFFF","__onchagne__" in super().__dir__())
 		
 		return False
 		if "new" not in kw:
@@ -474,7 +483,7 @@ class xoBranch(xoDeque):
 				if (item == 0 or item == -1) and len(self._branch)==0:
 					# print("!!!!!!!!!!!!!!!!!!!!!!!",item)
 					return self
-				if item >= len(self._branch) or item < -1 * len(self._branch):
+				if False and (item >= len(self._branch) or item < -1 * len(self._branch)):
 					# print("!!!!!!!!!!!!!!!!!!!!!!!222222222",item)
 					class OutOfIndexError(Exception):
 						pass
@@ -491,7 +500,14 @@ class xoBranch(xoDeque):
 							error_line = lines[calling_line_number - 1].strip()
 						raise OutOfIndexError(f"Index {item} is out of range for an object with {len(self._branch)} branches\n(line {calling_line_number}): {error_line}\n{'^'*len(error_line)}")
 					raise OutOfIndexError(f"Index {item} is out of range for an object with {len(self._branch)} branches\n({calling_file_name}:line {calling_line_number})")
-				
+				else:
+					while (item >= len(self._branch) or item < -1 * len(self._branch)):
+						parent = self
+						if self._parent != None:
+							parent = self._parent
+						print("NEW BID",len(parent._branch))
+						newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(parent._branch),)
+
 				# print("FFFFFFFFFFFFFFFFF",item)
 				# self.moveMarker(item)
 				self._floor_branch = item

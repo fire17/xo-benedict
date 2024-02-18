@@ -2257,6 +2257,9 @@ class FreshRedis(xoBenedict):
 						print("\n:::UUUUUUUUUUUUUUUUUUU Updating ",target._id+"."+key)
 						pass
 					'''
+					print("CCCCCCCCC",channel)
+					channel = channel.replace("]","").replace("[",".")
+					print("CCCCCCCCC",channel)
 					if channel not in self:
 						# self[channel] = res
 						# self[channel] = res
@@ -2302,7 +2305,7 @@ class FreshRedis(xoBenedict):
 						pass
 						# t.__setitem__(channel, res, skip_change = True)
 						# self.__onchange__(channel, res, skip_publish= True)
-						t.__setitem__(channel, res, skip_publish = True, sender=sender)
+						t.__setitem__(channel, res, skip_publish = True, sender=sender, no_fetch=True)
 						pass
 
 					# self.__setitem__(channel, res)
@@ -2407,7 +2410,7 @@ class FreshRedis(xoBenedict):
 				# print("121212121212")
 				# print("121212121212",args, kwargs)
 				res = self.fetchRedis()
-				if res != None:
+				if res != None and "no_fetch" not in kwargs:
 					pass
 					# self.value = res
 					# print("12121212", type(self))
