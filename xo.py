@@ -1204,7 +1204,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		return super().__len__()
 		
 	def __str__(self):
-		print("S S S",len(self.keys()), self.keys())
+		# print("S S S",len(self.keys()), self.keys())
 		if "value" in self and len(self.keys()) == 1:
 			return f'{self.value!r}'
 			# print(" VLAST ",str(self.value))

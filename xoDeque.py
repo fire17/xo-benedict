@@ -8,6 +8,8 @@ import inspect
 from xo import xoBenedict, FreshRedis
 import dill as pk
 
+from richtree import tree
+
 class xoDeque(xoBenedict):
 	_deque = []
 	def __init__(self, *a, **kw):
@@ -766,11 +768,11 @@ class xoBranch(FreshRedis):
 		for k in self.keys():
 			yield k, self[k]
 	
-	def __str__(self, bid = 0):
+	def __str__(self, bid = 0, noplace=False):
 		# print("STR",self._id, len(self._branch))
 		if self._branch == []:
 			if bid is None:
-				return self._parent[self._bid].__str__(bid = self._bid)
+				return self._parent[self._bid].__str__(bid = self._bid, noplace=noplace)
 			return str(self._parent)
 		if "value" in self and len(self.keys()) == 1:
 			# print("JUST VALUE",self.value)
@@ -805,7 +807,7 @@ class xoBranch(FreshRedis):
 		# print("GGGGGGGGGG")
 		# print(result)
 		# print("GGGGGGGGGG")
-		final = "{" + ", ".join([f"\"{k}\" {str(v.place() if hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v!r}" for k,v in result.items()]) + "}"
+		final = "{" + ", ".join([f"\"{k}\" {str(v.place() if not noplace and hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v.__str__(noplace=noplace) if isinstance(v,type(self)) else v}" for k,v in result.items()]) + "}"
 		return final
 
 	def __strx__(self):
@@ -852,7 +854,10 @@ class xoBranch(FreshRedis):
 		# 	final += 
 		return final
 		# return "{"+super().__str__()[1:-1]+str(self.place())+"}"
-
+	def tree(self, noplace=True, ret=False):
+		res = richtree.tree(self)
+		if ret:
+			return res
 
 
 

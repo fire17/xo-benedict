@@ -24,7 +24,98 @@ def tree(o):
     # return display_object(o)
 import ast
 # rprint(color.RESET)
-def display_object(obj, _tree=None):
+def display_object(obj, _tree=None, current = True, noplace=False):
+    if _tree is None:
+        print()
+        _tree = Tree(obj._id.split("[")[0] +" : "+obj.__str__(noplace=noplace)  if hasattr(obj,"_id") else (obj.__name__ if hasattr(obj, "__name__") else "Object"), guide_style="bold bright_blue")
+    # target = [b for b in obj._branch] if hasattr(obj,"_branch") and len(obj._branch)>0 else [obj]
+    # print()
+    brc = 0
+    for br in obj.branches():
+        # print("TTTTTTTTTTT",type(br))
+        # for key, value in obj.items():
+        items = br.items()
+        if items is not None: 
+            myplace = "("+str(brc+1)+"/"+str(len(obj.branches()))+")"
+            isCurrent = current and myplace == obj.place().replace("[","(").replace("]",")")
+            # key, value = br._id.split(".")[-1]+" "+myplace+" "+obj.place() , br
+            key, value = br._id.split(".")[-1] , br
+            node_text = f"{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+            # if isCurrent: node_text = "*[bold]"+node_text
+            icon = get_emoji(key,value.value if value in value else value)
+            branch = _tree.add(f"{'[bold]' if isCurrent else ''}{'[magenta]' if 'value' in value and isinstance(value['value'], str) else '[yellow]'}{'*' if isCurrent else ''}{icon if icon else 'open_file_folder'} {node_text}")
+            # branch = _tree.add("xxxxxxxxxx")
+
+            for key, value in items:
+                # print("ttttttttt",key)
+                # print(f"::: K,V {key}:{value}")
+                if key == "value":
+                    continue  # Skip displaying the "value" key
+                if isinstance(value, dict):
+                    # print("WWWWWWW",key, type(value) )
+                    # node_text = format_node_text(key, value)
+                    # node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if value.get('value') and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+                    node_text = f"xx [bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+                    # print("@@@@@@",key,type(value),node_text, )
+                    icon = get_emoji(key,value)
+                    # branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
+                    
+                    # branch2 = branch.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
+                    # branch2 = branch.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
+                    # branch2 = branch.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
+                    display_object(value, branch, current = isCurrent)
+                else:
+                    print("xxxxWWWWWWW",key,type(value) )
+                    node_text = f"{key} : {color.MAGENTA if isinstance(value, str) else color.LIGHTCYAN_EX}{repr(value)}"
+                    icon = get_emoji(key,value)
+                    # branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
+                    branch2 = branch.add(f"{icon if icon else 'open_file_folder'} {node_text}")
+                    # node_text = format_node_text(key, value)
+                    # tree.add(node_text)
+        else:
+            print(f"XXXXXXXXXXXX items {br} is None",)
+        brc += 1 
+    return _tree
+
+def display_objectOG(obj, _tree=None):
+    if _tree is None:
+        _tree = Tree(obj._id if hasattr(obj,"_id") else (obj.__name__ if hasattr(obj, "__name__") else "Object"), guide_style="bold bright_blue")
+    target = [b for b in obj._branch] if hasattr(obj,"_branch") and len(obj._branch)>0 else [obj]
+    # print()
+    for t in target:
+        # print("TTTTTTTTTTT",type(t))
+        # for key, value in obj.items():
+        items = t.items()
+        if items is not None: 
+            for key, value in items:
+                # print("ttttttttt",key)
+                # print(f"::: K,V {key}:{value}")
+                if key == "value":
+                    continue  # Skip displaying the "value" key
+                if isinstance(value, dict):
+                    # print("WWWWWWW",key, type(value) )
+                    # node_text = format_node_text(key, value)
+                    # node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if value.get('value') and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+                    node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+                    # print("@@@@@@",key,type(value),node_text, )
+                    icon = get_emoji(key,value)
+                    # branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
+                    branch = _tree.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
+                    display_objectOG(value, branch)
+                else:
+                    # print("xxxxWWWWWWW",key,type(value) )
+                    node_text = f"{key} : {color.MAGENTA if isinstance(value, str) else color.LIGHTCYAN_EX}{repr(value)}"
+                    icon = get_emoji(key,value)
+                    # branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
+                    branch = _tree.add(f"{icon if icon else 'open_file_folder'} {node_text}")
+                    # node_text = format_node_text(key, value)
+                    # tree.add(node_text)
+        else:
+            pass
+            # print(f"XXXXXXXXXXXX items {t} is None",)
+    return _tree
+
+def display_objectx(obj, _tree=None):
     if _tree is None:
         _tree = Tree(obj._id if hasattr(obj,"_id") else (obj.__name__ if hasattr(obj, "__name__") else "Object"), guide_style="bold bright_blue")
     # target = [b for b in obj._branch] if hasattr(obj,"_branch") and len(obj._branch)>0 else [obj]
@@ -56,7 +147,7 @@ def display_object(obj, _tree=None):
                             icon = get_emoji(key,value)
                             # branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
                             branch = _tree.add(f"11111{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
-                            display_object(value, branch)
+                            display_objectOG(value, branch)
                         elif key == "value":
                             print("xxxxWWWWWWW",key,type(value) )
                             node_text = f"22222{key} : {color.MAGENTA if isinstance(value, str) else color.LIGHTCYAN_EX}{repr(value)}"
@@ -118,28 +209,41 @@ obj = {
     }
 }
 
-# rprint(display_object(obj))
-# if True and not bpython: print(color.WHITE,end="")
+if False == "LEVEL1":
+    from xoDeque import xoBranch; bx = xoBranch()
+    bx.a(1).b(2).c(3); bx.a(11).b(22).c(33)
+    print(bx)
+    bx.show()
+    bx.pr()
+    bx.a.home()
+    tree(bx)
+if __name__=="__main__":
+    rprint(display_objectOG(obj))
+    if True and not bpython: print(color.WHITE,end="")
 
-
-from xoDeque import xoBranch; bx = xoBranch()
-bx.a(1).b(1).c(1)
-print("__________________________________________")
-bx.a(22).b(22).c(22)
-print("__________________________________________")
-bx.a.b(333).c(333)
-print("__________________________________________")
-print("PRE",bx._id)
-bx.value = "XXX"
-print("POST",bx._id)
-print("POST",bx.current()._id)
-print("__________________________________________")
-# bx.System("System Prompt1").User("<First question>").Agent("<Agent Response 1>").User("<User Flowup 1>").Agent("<Agent Reply A>")
-# bx.System.User.Agent.User("<User EDIT Flowup!C>").Agent("<Agent SECOND Reply C>")
-tree(bx)
-bx.show()
-bx.pr()
-if True and not bpython: print(color.WHITE,end="")
+    from xoDeque import xoBranch; bx = xoBranch()
+    bx.a(1).b(1).c(1)
+    print("__________________________________________")
+    bx.a(22).b(22).c(22)
+    print("__________________________________________")
+    bx.a.b(333).c(333)
+    print("__________________________________________")
+    print("PRE",bx._id)
+    bx.value = "XXX"
+    bx.home()
+    bx.a.b.left()
+    print("POST",bx._id)
+    print("POST",bx.current()._id)
+    print("__________________________________________")
+    # bx.System("System Prompt1").User("<First question>").Agent("<Agent Response 1>").User("<User Flowup 1>").Agent("<Agent Reply A>")
+    # bx.System.User.Agent.User("<User EDIT Flowup!C>").Agent("<Agent SECOND Reply C>")
+    # bx.end()
+    bx.show()
+    bx.pr()
+    
+    # assert bx.a.b.c == 22
+    tree(bx)
+    if True and not bpython: print(color.WHITE,end="")
 
 # tree(bx.flatten())
 
