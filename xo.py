@@ -2775,5 +2775,16 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 - DONE! - add None support
 - ({dict}) and  =dict not working as should
 - fix _cast, update, setitem={} and call({})
+- add namespace change (which works with redis, and changes _id)
+- fix naming issue when new bid and updating
+- nest xo's comfturbly, meaning skip casting if type xo, so redis can be inside xobenedict and vise versa
+- export_keys <> import_keys[data/_key_store], on change update _root._key_store
+
+- use aider! add ai unit tests - progressively harder (and maybe categories)
+- xoFiles - load folder tree and see files : data_preview txt/img in terminal
+
+- make xoBranch work on simple xo, and make new way to load inheritance, to mixmatch faster/better
+
+
 '''
 

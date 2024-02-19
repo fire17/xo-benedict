@@ -259,6 +259,12 @@ if __name__=="__main__":
 	bx.Users.Yo.Settings.color = 'Purple'
 	bx.Users.Yo.Settings.language = 'eng'
 	bx.tree()
+
+
+	from xoDeque import xoBranch; bx = xoBranch()
+	bx.System("System Prompt1").User("<First question>").Agent("<Agent Response 1>").User("<User Flowup 1>").Agent("<Agent Reply A>")
+	bx.System.User.Agent.User("<User EDIT Flowup!C>").Agent("<Agent SECOND Reply C>")
+	bx.tree()
 	# if True and not bpython: print(color.WHITE,end="")
 
 	# tree(bx.flatten())
@@ -280,6 +286,7 @@ obj = {
 
 
 
+'''
 # see nested.py
 
 # RICH TODO:
@@ -290,5 +297,11 @@ obj = {
 # make branch into table, if condition or isTable, single, nested
 # save
 
+# invisible table borders, Side | Side , left | right, benedict | xo
 
-#  how to align text inside colums?
+#  how to align text inside colums? 
+# fin tree view
+# add table view
+# add hidden .rich and if exists, overides str it tree or table
+
+'''
