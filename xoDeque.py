@@ -5,10 +5,10 @@ from functools import reduce
 import traceback
 
 import inspect
-from xo import xoBenedict, FreshRedis
+from xo import xoBenedict, FreshRedis, debug
 import dill as pk
 
-from richtree import tree
+from richtree import tree as richtree
 
 class xoDeque(xoBenedict):
 	_deque = []
@@ -127,7 +127,7 @@ class xoBranch(FreshRedis):
 		self._branch = []
 		self._bid = _bid
 		self._parent=_parent
-		print("init - ",self._bid,self._parent._id if self._parent is not None else "- Parent None", init, a, kw)
+		# print("init - ",self._bid,self._parent._id if self._parent is not None else "- Parent None", init, a, kw)
 		# self._branch.append(xoType(*a,**kw))
 		if len(a) >= 1:
 			self._deque.append(a[0])
@@ -855,7 +855,8 @@ class xoBranch(FreshRedis):
 		return final
 		# return "{"+super().__str__()[1:-1]+str(self.place())+"}"
 	def tree(self, noplace=True, ret=False):
-		res = richtree.tree(self)
+		print()
+		res = richtree(self, noplace=noplace)
 		if ret:
 			return res
 

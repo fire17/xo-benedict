@@ -651,8 +651,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
-			print("value", value)
-			print("key", key)
+			if debug: print("value", value)
+			if debug: print("key", key)
 			if key in self and key != "value":
 				if value is None:  #Added None support
 					# if not hasattr(self,"value"):
