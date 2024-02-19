@@ -2779,11 +2779,150 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 - fix naming issue when new bid and updating
 - nest xo's comfturbly, meaning skip casting if type xo, so redis can be inside xobenedict and vise versa
 - export_keys <> import_keys[data/_key_store], on change update _root._key_store
+- new_branch(clone_prev + overwrite with new data)
+- object as table, + multiple objects in table, compare branches, compare children
+
+- reorder __dir__() to show keys first!
 
 - use aider! add ai unit tests - progressively harder (and maybe categories)
+- IN NEW BRANCH - LEVEL 1 	- no changes, only codequaily improvement
+							- start by cleaning all the junk comments (after unit tests), then factorize and generalize code, split to different files,
+							- apply an ai loop to run the actual unit tests and try_fix/startover/recover if something breaks
+- IN NEW BRANCH - LEVEL 2 	- Teach ai to write xo code, and have it generate functions to enter the skill_lib
+- IN NEW BRANCH - LEVEL 3 	- 
+- 
+- 
+
 - xoFiles - load folder tree and see files : data_preview txt/img in terminal
+- xoFiles <> xoJS <> xoServer, Live code editing (with hot reload) save file -> see on web instantly, monitor and change, saved
+	-LOP 
+- use xo as syntax to genereate websites and [T] generic object, skill lib, 
+
 
 - make xoBranch work on simple xo, and make new way to load inheritance, to mixmatch faster/better
+
+# For Users
+	xoMagicLLight, xoAkeyo, xoEmployee, xoDelivery, xoStore 
+
+# Frameworks For Developers
+ 		xoApps, LOP, xoAI, xoProjects, IFTAI
+Basics: <xo>, <xoBench>, <xoDecorator>, <xoDeque>, <xoBranch> <xoMixo>
+Special: <xoJS>, <xoCLI>, <xoMagicCLI> <xoDot> <xoMagic> <xApps>  
+Advanced [yet easy]: <xoRedis> <xoMicro> <xoServer> <xoAPI> <xoMetric> <xoGraphana> <xoTrace> <xoLOP>
+AI Basics: <xoAtom> <xoConv> <xoMemory+RAG> <xoLib> <xoResearcher> <xoLibAI> <xoAIxoCode>
+AI Advanced: <xoAI> <xoAider> <xoJarvis> <xoEmployee> <xoStore> <xoJam> <xoDJ> <xoMagicLLight>
+Utils: <xoFiles> <xoUsers> <xoAuth> <xoEnc> <xoDB> <xoEvents+watchdog[T,sys,wa,email,3rd,anyXo,]> <xoLinks/xoShorts> <xoThumbs> <xoDesign> <xoGit> 
+Hooks: <xoCLI> <xoWeb> <xoWhatsapp> <xoTelegram> <xoDiscord> <xoSlack> <xoZoxide>
+Network: <xoP2P> <xoZMQ> <xoMQTT> <xoFreeDNS> <xoVPCloud/xoDeploy> 
+Magic: <xoGen> <xoMusic> <xoNLP> <xoeMotion-self/media> <xoVision>
+Freedom: <xoFreeAPI> 
+
+
+
+$$$$$$ <xoOpenSources> -> finds best open source packages, and mixes them to improve all of the non inovative aspects of all current popular services
+find unique ways of futuristic thinking , for which quality of life improves through the new way of oproaching the data, **its all about distilling data into insights and actions** , everything is about how you make connections to what is coming, 
+
+<xoAGI>
+<xoFutureAI> - oracle that hallucinates the future, with leaps but progressions, and with the ability to predict the future, AND MAP IT! Simulate steps, current world live updating model
+
+
+
+Tomorrow:
+- Fix Naming issue when updating new bid
+- make rich tables
+- xoProjects - start feeding project data and content, it will be published and sorted later
+
+OPUS - IM A COMPOSER
+Opus 1 - Dev Composer										Entire xo Package, + Redhat service
+Opus Initium - xoOpen$ource	aka OpenXource									Map The Uncharted Present and Future
+Opus Genesis - import openxource.anything() magical psudo code + Global AI Skill Lib 				The Wikipedia of AI Skills
+Opus Dawn - The Golden Plature
+Opus Grand - Dev AI - Let Users bring their apis, sign in with claud/openai/etx, run locally + expose api, or charge for Package Pack + Real Life Apps IFTAI <xoEvents>
+Opus Apex - Akeyo In Real Life
+Opus Zenith - 
+Opus Magnum - WholesomeGarden
+Opus Crown - ananda 
+Opus Eternal - Peace												For AGI , Life is just an API (#Everything is a function)
+
+User
+lets come up with new phrases that sound good and give the same energy
+if Opus Grand - is level 5
+and Opus Magnum - is level 8
+what are all other levels 1-10?
+Certainly! Let's create a scale of phrases from level 1 to level 10, each conveying a sense of accomplishment or significance:
+
+1. Opus Prelude - Level 1
+2. Opus Initium - Level 2
+3. Opus Genesis - Level 3
+5. Opus Grand - Level 5
+6. Opus Apex - Level 6
+7. Opus Zenith - Level 7
+8. Opus Magnum - Level 8
+9. Opus Crown - Level 9
+10. Opus Eternal - Level 10
+
+These phrases convey a progression from the initial stages of creation (Prelude, Initium, Genesis) to the pinnacle of achievement (Grand, Magnum, Crown) and even beyond (Eternal). Each term adds a layer of depth and grandeur to the significance of the work being described.
+
+xoBranch on multiple models, save .meta for responses including model, recent events,
+
+
+Do'pono in the morning - bless yourself (actively)
+Do'opus in the day - Solve & Evolve
+Do'magi in the evening - extraodinary & fun / dreamvisions -lucid
+Do'pana in the night - thanks
+
+Self-Optimize: Do Arcitecture at night, plan for tommorow, 
+
+
+do kata
+do rama
+do pata
+do kami
+do bana
+do shata 
+do mana
+do wapa
+do zeta
+do epa
+do moda
+do xahi
+do leta
+do geta
+do fana
+do rasa
+do runi
+do risha
+do shira
+do mika
+do mina
+do ora
+do oma
+do oshi
+do wata
+do emi
+do imi
+do nami
+do kasa
+do vana
+do vani
+do dani
+do meta
+do yuta
+do yuma
+do tami
+do hopa
+do hima
+do gita
+do vani
+do ori
+do oppo 
+
+
+The Trick to: write a sentence that each word starts with a to z:
++ The meaning of the sentence should convey or tell a story, or a chunk from it, where the reader has no context, and the in the scene what happens is {scene}
+[A]-complete_word [B]-complete_word ....... Fast consecutive runs, take 1 word, add the next letter, and repeat
+eventually, this could be like an interupt mechanism for ais, where they asyncly talk to eachother, 
+dynamically inserting eachothers words, with time delays and visuals, with a conversation manager that understands when it is appropriate to insert, and theres no cutoff, just rebranching and preloading ['unfinished thoughts'] 
 
 
 '''
