@@ -125,18 +125,37 @@ class xoBranch(FreshRedis):
 		self._branch = []
 		self._bid = _bid
 		self._parent=_parent
+		print("init - ",self._bid,self._parent._id if self._parent is not None else "- Parent None", init, a, kw)
 		# self._branch.append(xoType(*a,**kw))
 		if len(a) >= 1:
 			self._deque.append(a[0])
 		elif "value" in kw:
 			self._deque.append(kw["value"])
-		super().__init__(*a, **kw)
 		
-		if self._id[-1] == "]":
-			self._id = "[".join(self._id.split("[")[:-1])+"["+str(self._bid)+"]"
-			self._bid = self._marker
-		else: 
-			self._id = self._id+f"[{self._bid}]"
+		if "yes_fetch" not in kw: kw["no_fetch"] = True
+		skip_reid = False
+		if "_id" in kw:
+			if kw['_id'][-1] == "]":
+				kw['_id'] = "[".join(kw['_id'].split("[")[:-1])+"["+str(self._bid)+"]"
+				self._bid = self._marker
+			else: 
+				kw['_id'] = kw['_id']+f"[{self._bid}]"
+			skip_reid = True
+		super().__init__(*a, **kw)
+		if False:
+			if self._isRoot:
+				print("SHOULD NOT FETCH",self._id)
+			else:
+				print("X SHOULD NOT FETCH",self._id)
+			# print("XXXXXXXXXXXXXXXXXXXXXXXXX")
+			# print("XXXXXXXXXXXXXXXXXXXXXXXXX")
+			# print("XXXXXXXXXXXXXXXXXXXXXXXXX")
+		if not skip_reid:
+			if self._id[-1] == "]":
+				self._id = "[".join(self._id.split("[")[:-1])+"["+str(self._bid)+"]"
+				self._bid = self._marker
+			else: 
+				self._id = self._id+f"[{self._bid}]"
 		if self._parent != None:
 			self._parent._branch.append(self)
 			self._bid = len(self._parent._branch) - 1
@@ -168,6 +187,7 @@ class xoBranch(FreshRedis):
 		# elif self._branch == []:
 		#     self._branch.append(self)
 		#     self.current()._branch.append(self)
+		
 	
 	
 	#xxxx
@@ -288,6 +308,7 @@ class xoBranch(FreshRedis):
 		return cls().import_branches(d)
 	
 	def pr(d):
+		print(":::",d._id)
 		d = d.flatten()
 		# print("............")
 		[print(k,":",v) for k,v in d.items()]
@@ -360,16 +381,77 @@ class xoBranch(FreshRedis):
 			
 		
 		return len(self._branch) if len(self._branch) > 0 else len(self.keys())
-		
+	
 
+
+	def branches(self, fast = False, useSuper = False):
+		ret = []
+		if useSuper:
+			res = super().items(fast=fast)
+			print(f"GOT {len(list(res))} with super",res)
+			ret.append(res)
+			# yield res
+			# return res
+		if len(self._branch) == 0:
+			for a in [list(i.items()) for i in (b for b in self._parent._branch)]:
+				pass
+				# ret.append(a)
+				# yield 
+		else:
+		# return self._branch
+			for a in self._branch:
+				ret.append(a)
+				# yield a
+		return ret
+	
+
+	def itemsy(self, fast = False, useSuper = False):
+		if useSuper:
+			res = super().items(fast=fast)
+			print(f"GOT {len(list(res))} with super")
+			return res
+		print(f"iiiii:{self._id}",useSuper)
+		if len(self._branch) > 0:
+			
+			# return [item for d in self._branch for item in d.items(useSuper=True)]
+			print("Getting Branches of",self._id)
+			# res = [item for d in self._branch for item in d.items(useSuper=True)]
+			res = [d for d in self._branch]
+			print("GOT:",len(res), res)
+			return res 
+			return [item for d in self._branch for item in d.items()]
+		else: #lif self._parent is not None:
+			print("NO BRANCHES",self._id, self._bid, self.value if "value" in self else "- NO VALUE")
+			# return self._parent.items()
+		return super().items()
+		# list_of_dicts = [{"items": [1, 2]}, {"items": [3, 4]}]
+		# final = combined_list = [item for d in self._branch for item in d.items(useSuper=True)]
+		# print(combined_list)
+		# final = [sublist.items() for sublist in self._branch for item in sublist]
+		# return final
+	def itemsx(self, fast = False, useSuper = False):
+		if useSuper:
+			return super().items(fast=fast)
+		# list_of_dicts = [{"items": [1, 2]}, {"items": [3, 4]}]
+		# final = combined_list = [item for d in self._branch for item in d.items(useSuper=True)]
+		final = combined_list = [item for d in self._branch for item in d.items(useSuper=True)]
+		# print(combined_list)
+		# final = [sublist.items() for sublist in self._branch for item in sublist]
+		return final
+	
+	# def clear(self):
+	# 	[a.clear() for a in self._branch]
+	# 	self._branch.clear()
+	
 	def __onchange__(self,_id, value, *a, **kw):
 		# print("ONCHANGE",a,kw)
-		print("::: Creating a new branch for ",self._id,self.place(),":",_id,value, a,kw)
+		if False: print("::: Creating a new branch for ",self._id,self.place(),":",_id,value, a,kw)
 		# newBranch = type(self)(_id = self._id,_bid=len(self._branch))
 		# newBranch.value = value
 		# if "value" not in self.keys() and value != "____init____":
 		# 	self["value"] = "____init____"
 			# self.pop("value")
+		
 		parent = self
 		if self._parent != None:
 			parent = self._parent
@@ -414,7 +496,7 @@ class xoBranch(FreshRedis):
 				super().__onchange__(_id, value, *a, **kw)
 			elif True:
 				FreshRedis.__onchange__(self, _id, value, *a, **kw)
-		print("FFFFFFFFF","__onchagne__" in super().__dir__())
+		# print("FFFFFFFFF","__onchagne__" in super().__dir__())
 		
 		return False
 		if "new" not in kw:
@@ -425,21 +507,26 @@ class xoBranch(FreshRedis):
 	# 		return str(super().__str__())
 	# 	return  self.current().__str__(final = True)
 	def __repr__(self):
-		return  str(self.current())
+		if self.current() != None:
+			return str(self.current())
+		return super().__repr__()
 
 	def __getattr__(self, item, *args, **kwargs):
-		if item == '_branch':
-			pass
+		# if item == '_branch':
+		# 	pass
+		if item == "items" or item == "_branch":
+			print("$$$$$$$$$$$$$$$$$$$$",item)
 			# print("!!!!!!!!!!!!!!!!!!!!")
 		if "final" in kwargs:
 			kwargs.pop("final")
 			return super().__getitem__(item, *args, **kwargs)
 		# if item not in self.current():
-			
 		return self.current().__getitem__(item,*args, **kwargs)
 		
 	
 	def __getitem__(self, item, *args, **kwargs):
+		if item == "items" or item == "_branch":
+			print("$$$$$$$$$$$$$$$$$$$$iiiii",item)
 		# if isinstance(item, tuple) or isinstance(item,list):
 		# 	# return reduce(lambda x, y: x[y], [1,0,1], [[1],[[0,17],2]])
 		# 	return reduce(lambda x, y: x[y], list(item), self)
@@ -674,15 +761,62 @@ class xoBranch(FreshRedis):
 		return self.current().getBranch(-1)
 	def first(self):
 		return self.current().getBranch(0)
+
+	def items(self, fast=True):
+		for k in self.keys():
+			yield k, self[k]
 	
-	def __str__(self):
+	def __str__(self, bid = 0):
+		# print("STR",self._id, len(self._branch))
+		if self._branch == []:
+			if bid is None:
+				return self._parent[self._bid].__str__(bid = self._bid)
+			return str(self._parent)
+		if "value" in self and len(self.keys()) == 1:
+			# print("JUST VALUE",self.value)
+			return f'{self.value!r}'
+		result = {}
+		brc = 0
+		# for br in self.branches():
+		# for br in self.branches():
+		if True:
+			br = self[self._marker]
+			# print("BR",)
+			# target = br[bid] if bid is not None else br
+
+			for key, val in br[br._marker].items():
+				# print("KV",key,type(val))
+				# print("BR branches",len(br._branch), br._b	id)
+				if len(str(key)) > 0 and str(key)[0] != "_":
+					# if isinstance(val,dict) and "value" in val and len(val.keys())==1:
+					# 	result[key+f':{br._bid}:'] = val
+					# else:
+					# 	result[key+f':{br._bid}:'] = val
+					if isinstance(val, type(self)):
+						# result[key+f':{val.place()}-{val._bid}:'] = val
+						result[key] = val
+					else:
+						result[key] = val
+
+			if "value" in result:
+				val = result.pop("value")
+				result = {"value":val,**result}
+			brc += 1
+		# print("GGGGGGGGGG")
+		# print(result)
+		# print("GGGGGGGGGG")
+		final = "{" + ", ".join([f"\"{k}\" {str(v.place() if hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v!r}" for k,v in result.items()]) + "}"
+		return final
+
+	def __strx__(self):
 		if "value" in self and len(self.keys()) == 1:
 			return f'{self.value!r}'
 		
 
 		result = {}  # Start with an empty dictionary to store the key-value pairs
 		# Iterate over each key-value pair in self.items()
-		for key, val in self.items(fast=True):
+		# for key, val in self.items(fast=True,  useSuper = True):
+		for key, val in self.items(fast=True,  useSuper = True):
 			# Check if the key is not empty and doesn't start with "_"
 			if len(str(key)) > 0 and str(key)[0] != "_":
 				# key += " "

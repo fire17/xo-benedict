@@ -576,7 +576,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	# return super().__setitem__(key+".value", self._cast(value))
 		# 	return super().__setattr__(key+".value", value)
 		'''
-		print("......................")
+		# print("......................")
 		obj_type = type(self)
 		# obj_type()
 		# print("set KKKKKKKK",key)
@@ -1204,7 +1204,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		return super().__len__()
 		
 	def __str__(self):
-		# print("S S S",len(self.keys()), self.keys())
+		print("S S S",len(self.keys()), self.keys())
 		if "value" in self and len(self.keys()) == 1:
 			return f'{self.value!r}'
 			# print(" VLAST ",str(self.value))
@@ -2093,7 +2093,7 @@ class FreshRedis(xoBenedict):
 	# 	return super().__init__(*args, **kwargs)
 	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
-		if debug or True: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
+		if debug: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
 		# Save and publish
 		# sender = hash(self._root._redis)
 		if False: #change value if you want before everything
@@ -2340,7 +2340,7 @@ class FreshRedis(xoBenedict):
 		if "port" in kwargs: kwargs.pop("port")
 		if "password" in kwargs: kwargs.pop("password")
 		# kwargs.pop("pass")
-
+		no_fetch = kwargs.pop("no_fetch") if "no_fetch" in kwargs else False
 		super().__init__(*args, **kwargs)
 		if type(self._root)!= type(self):
 			self._root = self
@@ -2409,17 +2409,18 @@ class FreshRedis(xoBenedict):
 				# print("121212121212")
 				# print("121212121212")
 				# print("121212121212",args, kwargs)
-				res = self.fetchRedis()
-				if res != None and "no_fetch" not in kwargs:
-					pass
-					# self.value = res
-					# print("12121212", type(self))
-					self.__setitem__("value", res, skip_publish=True, origin='init:fetched',)
-					# self.__setattr__("value", res)#, skip_publish=True,skip_change = True)
-					# print("12121212xxxxxxxx")
-					return
-				else:
-					pass
+				if not no_fetch:
+					res = self.fetchRedis()
+					if res != None:
+						pass
+						# self.value = res
+						# print("12121212", type(self))
+						self.__setitem__("value", res, skip_publish=True, origin='init:fetched',)
+						# self.__setattr__("value", res)#, skip_publish=True,skip_change = True)
+						# print("12121212xxxxxxxx")
+						return
+					else:
+						pass
 				'''
 				'''
 					# print("HANDLE NONE?")
@@ -2488,7 +2489,7 @@ class FreshRedis(xoBenedict):
 		val = pk.dumps([sender,val])
 		# save = pk.dumps(orgVal)
 		# res = r.set(self._id, save)
-		if debug or True: print("::: Publishing",fullkey, orgVal)
+		if debug: print("::: Publishing",fullkey, orgVal)
 		# time.sleep(1)
 		r.publish(fullkey, val)
 
