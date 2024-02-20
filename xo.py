@@ -2826,11 +2826,14 @@ find unique ways of futuristic thinking , for which quality of life improves thr
 <xoFutureAI> - oracle that hallucinates the future, with leaps but progressions, and with the ability to predict the future, AND MAP IT! Simulate steps, current world live updating model
 
 
+Extra: loving zoxide, need one for commands, for example, p live should find ~/wholesomegarden/xo-benedict/liveupdate.py and run it - WTF cli correct
+learn rich -> rich skill for ai, live dynamic text
 
 Tomorrow:
 - Fix Naming issue when updating new bid
 - make rich tables
 - xoProjects - start feeding project data and content, it will be published and sorted later
+
 
 OPUS - IM A COMPOSER
 Opus 1 - Dev Composer										Entire xo Package, + Redhat service
@@ -2865,6 +2868,7 @@ These phrases convey a progression from the initial stages of creation (Prelude,
 
 xoBranch on multiple models, save .meta for responses including model, recent events,
 
+Do' should be read as DO (Re-Me) not as do (todo)
 
 Do'pono in the morning - bless yourself (actively)
 Do'opus in the day - Solve & Evolve
