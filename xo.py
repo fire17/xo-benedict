@@ -54,7 +54,6 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		
 		
 		nid = None
-		# print("iiiiiiiiiiiiiiii",args,kwargs)
 		if "_id" in kwargs:
 			nid = kwargs.pop("_id")
 		# print("_IDIDIDID", nid, "param")
@@ -73,6 +72,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			newArgs = list(args);newArgs.remove(args[0])
 			args = newArgs
 		# else:
+		# print("iiiiiiiiiiiiiiii",self._id,args,kwargs)
 		# 	pass
 		# 	print("XXXXX",self._isRoot, args )
 		# print("iiiiiiiiiiiiiiii",self._id, ":::",args,":::",kwargs)
@@ -651,8 +651,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
-			if debug: print("value", value)
-			if debug: print("key", key)
+			if False and debug: print("value", value)
+			if False and debug: print("key", key)
 			if key in self and key != "value":
 				if value is None:  #Added None support
 					# if not hasattr(self,"value"):
@@ -2257,9 +2257,9 @@ class FreshRedis(xoBenedict):
 						print("\n:::UUUUUUUUUUUUUUUUUUU Updating ",target._id+"."+key)
 						pass
 					'''
-					print("CCCCCCCCC",channel)
+					# print("CCCCCCCCC",channel)
 					channel = channel.replace("]","").replace("[",".")
-					print("CCCCCCCCC",channel)
+					# print("CCCCCCCCC",channel)
 					if channel not in self:
 						# self[channel] = res
 						# self[channel] = res
@@ -2295,7 +2295,7 @@ class FreshRedis(xoBenedict):
 						l = len(channel.split("."))
 						co = 0
 						
-						print("ccccc",channel)
+						# print("ccccc",channel)
 						'''
 						for c in channel.split("."):
 							# print("cccccc",c)
@@ -2304,12 +2304,12 @@ class FreshRedis(xoBenedict):
 							else:t:xoBenedict = t.__getitem__(c)
 							co+=1
 						'''
-						if debug or funMode: print("::: Updating",t._id+"."+channel,"=",res)
+						if debug or funMode: print("::: Updating",t._id+"["+channel+"]","=",res)
 						# t.__setitem__(channel, res, skip_publish = True)
 						pass
 						# t.__setitem__(channel, res, skip_change = True)
 						# self.__onchange__(channel, res, skip_publish= True)
-						print("cccccc", self._id, channel, self.keys())
+						# print("cccccc", self._id, channel, self.keys())
 						self.__setitem__(channel,res, skip_publish = True, sender=sender, no_fetch=True)
 						pass
 						# t.__setitem__(channel, res, skip_publish = True, sender=sender, no_fetch=True)
