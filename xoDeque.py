@@ -447,13 +447,14 @@ class xoBranch(FreshRedis):
 	
 	def __onchange__(self,_id, value, *a, **kw):
 		# print("ONCHANGE",a,kw)
-		if False: print("::: Creating a new branch for ",self._id,self.place(),":",_id,value, a,kw)
+		if True: print("::: Creating a new branch for ",self._id,self.place(),":",_id,value, a,kw)
 		# newBranch = type(self)(_id = self._id,_bid=len(self._branch))
 		# newBranch.value = value
 		# if "value" not in self.keys() and value != "____init____":
 		# 	self["value"] = "____init____"
 			# self.pop("value")
-		
+		new_bid =len(self._branch)
+
 		parent = self
 		if self._parent != None:
 			parent = self._parent
@@ -473,11 +474,11 @@ class xoBranch(FreshRedis):
 				pass
 				# print("NOT DELETING EMPTY BRANCH!!!", self._parent._branch[-1],)
 			# print("YYYYYYYYY")
-			newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._parent._branch),value = value)
-			self._parent._bid = len(self._parent._branch)-1
+			newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._parent._branch),value = value) #TODO ? Add kwargs?
+			self._parent._bid = len(self._parent._branch)-1 #>>>>>>>>>>
 		else:
 			# print("NNNNNNNNNN")
-			newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._branch),value = value)
+			newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._branch),value = value) #TODO ? Add kwargs?
 		# newBranch = type(self)(new = True, _parent = parent, _id = self._id,_bid=len(self._branch),value = value)
 		# if "new" in kw:
 		#     kw.pop("new")
@@ -497,7 +498,7 @@ class xoBranch(FreshRedis):
 				print("!!!!!!!!!!!!")
 				super().__onchange__(_id, value, *a, **kw)
 			elif True:
-				FreshRedis.__onchange__(self, _id, value, *a, **kw)
+				FreshRedis.__onchange__(self, _id, value, *a, **{**{"99999999new_bid":new_bid},**kw})
 		# print("FFFFFFFFF","__onchagne__" in super().__dir__())
 		
 		return False
@@ -525,10 +526,36 @@ class xoBranch(FreshRedis):
 		# if item not in self.current():
 		return self.current().__getitem__(item,*args, **kwargs)
 		
-	
+	def _canBeInt(self, string):
+		try:
+			# print(f"@{string}@")
+			return int(string)
+		except:
+			# traceback.print_exc()
+			return False
 	def __getitem__(self, item, *args, **kwargs):
 		if item == "items" or item == "_branch":
 			print("$$$$$$$$$$$$$$$$$$$$iiiii",item)
+		# print("ggggggggggg",item, kwargs)
+		isInt = self._canBeInt(item)
+		if isInt is not False:
+			
+			if isInt >= len(self._branch) or isInt < (-1 * len(self._branch)):
+				parent = self
+				if self._parent != None:
+					parent = self._parent
+				self.tree()
+				new_id = self._id
+				idchanged=False
+				if new_id[-1] == "]":
+					idchanged=True
+					isInt+=1
+					new_id = "[".join(self._id.split("[")[:-1])+"["+str(isInt)+"]"
+					kwargs["new_id"] = new_id, isInt
+					pass
+					print("$$$$$$$$$$$$$$$$$$$$$$1!!!!!!!!!!!", self._id,item, new_id)
+				else:
+					print("??????????????????????$$$?????")
 		# if isinstance(item, tuple) or isinstance(item,list):
 		# 	# return reduce(lambda x, y: x[y], [1,0,1], [[1],[[0,17],2]])
 		# 	return reduce(lambda x, y: x[y], list(item), self)
@@ -557,14 +584,8 @@ class xoBranch(FreshRedis):
 			kwargs["final"] = True
 			return self.current().__getattr__(item, *args, **kwargs)
 		else:
-			def canBeInt(string):
-				try:
-					# print(f"@{string}@")
-					return int(string)
-				except:
-					# traceback.print_exc()
-					return False
-			isInt = canBeInt(item)
+			
+			isInt = self._canBeInt(item)
 			if isInt is not False:
 				item = isInt
 			# print("ISISISISIS", isInt, item, len(self._branch)==0)
@@ -594,8 +615,24 @@ class xoBranch(FreshRedis):
 						parent = self
 						if self._parent != None:
 							parent = self._parent
-						print("NEW BID",len(parent._branch))
-						newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(parent._branch),)
+						self.tree()
+						new_id = self._id
+						idchanged=False
+						if new_id[-1] == "]":
+							idchanged=True
+							isInt+=1
+							new_id = "[".join(self._id.split("[")[:-1])+"["+str(isInt)+"]"
+							kwargs["new_id"] = new_id, item
+							pass
+							print("$$$$$$$$$$$$$$$$$$$$$$22222222", kwargs)
+						else:
+							print("??????????????????????$$$?????")
+						print("NEW BID",len(parent._branch), self._id, item, new_id, len(parent._branch) )
+						# OG WORKING LOCAL# newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(parent._branch),)
+						# newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(parent._branch),)
+						# newBranch = type(self)(_parent = parent, _id = "[".join(self._id.split("[")[:-1])+"["+str(item)+"]",_bid=len(parent._branch),)
+						newBranch = type(self)(_parent = parent, _id = new_id ,_bid=len(parent._branch), **kwargs)
+						# newBranch = type(self)(_parent = parent, _id = "[".join(self._id.split("[")[:-1])+"["++str(len(parent._branch))+"]",_bid=len(parent._branch),)
 
 				# print("FFFFFFFFFFFFFFFFF",item)
 				# self.moveMarker(item)
@@ -674,7 +711,27 @@ class xoBranch(FreshRedis):
 		# 		return  reduce(lambda x, y: x[y], list(item)[:-1], self)._parent._branch[int(list(item)[-1])].__setitem__("value",value, *args, **kwargs)
 		# 	return reduce(lambda x, y: x[y], list(item)[:-1], self).__setitem__(list(item)[-1],value, *args, **kwargs)
 		# print("SSSSSSSS",item, type(value),value, args, kwargs)
-		
+		isInt = canBeInt(item)
+		isInt = canBeInt(self._id.split("[")[-1].strip("]")) if not isInt else None
+		if isInt is not False:
+			if (isInt >= len(self._branch) or isInt < -1 * len(self._branch)):
+				parent = self
+				if self._parent != None:
+					parent = self._parent
+				self.tree()
+				new_id = self._id
+				idchanged=False
+				if new_id[-1] == "]":
+					idchanged=True
+					# isInt+=1
+					new_id = "[".join(self._id.split("[")[:-1])+"["+str(isInt)+"]"
+					kwargs["new_id"] = new_id, isInt
+					pass
+					print("$$$$$$$$$$$$$$$$$$$$$$333333333", kwargs, None if self._parent is None else self._parent._id)
+				else:
+					print("??????????????????????$$$?????")
+		else:
+			print(f"Item not number {item} in {self._id}",kwargs)
 		isInt = canBeInt(item)
 		if isInt is not False: item = isInt
 		# print("ISISISISIS", isInt, item, len(self._branch)==0)
@@ -862,8 +919,53 @@ class xoBranch(FreshRedis):
 
 
 
+if __name__ == "__main__":
+	bx = xoBranch(); 
+	print("::: xoBranch Started")
+	bx = xoBranch(); xo = bx
+	bx.a(1).b(1).c(1)
+	xo.tree()
+	input("ENABLE BRAKEPOINT!")
+	xo.a.b(3333).c(4444)
+	xo.tree()
+	
+	bx.tree()
+	while(True):
+		d = input("Press Enter to display: ")
+		if d == "":
+			bx.tree()
+		elif len(d)>3 and "fetch:" in d[:6]:
+			_,k = d.split(":")[0], ":".join(d.split(":")[1:])
+			print(f"::: Fetching {k}",k, bx[k])
+			bx[k].fetchRedis()
+			print(f"::: Fetched {k}",k, bx[k])
+			bx.tree()
+		elif len(d)>3 and "del:" in d[:4]:
+			_,k = d.split(":")[0], ":".join(d.split(":")[1:])
+			print(f"::: Deleting {k}",k, bx[k])
+			bx.delete(k)
+			bx.tree()
+		elif len(d)>3 and "call:" in d[:4]:
+			dd,k = d.split(":")[0], ":".join(d.split(":")[1:])
+			if ":" in k[0]:
+				k,v = d.split(":")[0], ":".join(d.split(":")[1:])
+				print(f"::: Calling {k} with argument! {v}", bx[k],"\n") # use ast.literal_eval to add dictionary
+				bx[k](v)
+			else:
+				print(f"::: Calling {k}",k, bx[k],"\n")
+				bx[k]()
+			bx.tree()
 
-# bx = xoBranch()
+		elif ":" in d:
+			k,v = d.split(":")[0], ":".join(d.split(":")[1:])
+			print("::: Setting",bx[k]._id, "to", v)
+			bx[k] = v
+			bx.tree()
+		else:
+			print("::: Showing",bx[d]._id)
+			bx[d].tree()
+
+
 # bx.a = 1111111
 # bx.a = 2222222
 # bx.flatten()
