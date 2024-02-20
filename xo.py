@@ -80,7 +80,6 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		
 		if debug:
 			print(f"::: Creating {new} {namespace} with ID:",self._id, ":::",args,":::",kwargs)
-		# print("[[[[[{[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[")
 		# if len(args)==1:
 		# 	print("TTTTTTTTTT",type(args[0]))
 		# print(":::",self._id)
@@ -232,23 +231,20 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				if key != "value" and key in self and type(self[key]) != type(self):
 				# if key != "value" and key in self:# and type(self[key]) != type(self):
 					# print("kkk",key,type(self[key]) != type(self))
-					print("MMMMMMMMMMMMM",key,value, key in self)
+					# print("MMMMMMMMMMMMM",key,value, key in self)
 					self[key] = value
 					# print(".x.",key)
 				elif key not in self:
-					print("!!!!!!!!!!!!!!!!!!MMMMMM",key)
+					# print("!!!!!!!!!!!!!!!!!!",key)
 					if key == "value":
-						self.__setitem__(key,value,**{"NEW_ID":self._id})
-						# self[key] = value
+						self[key] = value
 					else:
-						self.__setitem__(key,value,**{"NEW_ID":str(self._id)})
-						# self[key] = value
+						self[key] = value
 						pass
 				else:
 					pass
 					# print("...")
-		
-		# print("]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]FIN 0")
+
 		if False and "_override" in kwargs and kwargs["_override"]:
 			if len(args) == 1 and isinstance(args[0], dict):
 				obj = args[0]
@@ -286,7 +282,6 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 							self[key]["value"] = value
 							print("VVV", self)
 		# self.update(kwargs)
-		# print("]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]FIN0")
 
 
 	def __call__(self,*args, **kwargs):
@@ -305,7 +300,6 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			if len(args) == 1:
 				if isinstance(args[0], dict):
 					for key, value in args[0].items():
-						
 						self[key] = value
 				else:
 					self["value"] = args[0]
@@ -2097,10 +2091,9 @@ class Fresh(xoBenedict):
 class FreshRedis(xoBenedict):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
-	_swap={}
+	
 	def __onchange__(self, fullkey, value, *args, **kwargs):
-		print("????")
-		if debug: print(f"!!! : : : : {fullkey} {str(None) if fullkey not in FreshRedis._swap else FreshRedis._swap.pop(fullkey)} REDIS CHANGING TO {str(value)}",args, kwargs, self._id)
+		if debug: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
 		# Save and publish
 		# sender = hash(self._root._redis)
 		if False: #change value if you want before everything
@@ -2121,20 +2114,8 @@ class FreshRedis(xoBenedict):
 		# val = pk.dumps([sender,val])
 		# val = pk.dumps(val)
 		fullkey = fullkey[:-6] if ".value" == fullkey[-6:] else fullkey
-
-		ogfullkey = fullkey
-		# new_id, bid = kwargs["new_id"][0][0],kwargs["new_id"][0][1] if "new_id" in kwargs else None, None
-		new_id, bid = kwargs["new_id"] if "new_id" in kwargs else (None, None)
-		print("%%%%%%", fullkey, new_id , bid)
-		if bid is not None:
-			kwargs.pop("new_id")
-			# fullkey = fullkey.split
-			fullkey = "[".join(fullkey.split("[")[:-1])+"["+str(bid)+"]" if fullkey[-1] == "]" else fullkey+f"[{bid}]"
-			#?fullkey = new_id if diffirent meaning when stripping away all markers .0. or [0] are they not the same address, if different, then just use new key
-			print(f"$$$$$$$$$$ NEW_ID {fullkey}, prev: {ogfullkey} should be: {new_id} bid:{bid}")
-
 		res = self._root._redis.set(fullkey, val)
-		if debug or True: print(f" : : : {res} SAVING TO REDIS",fullkey,newVal)
+		if True and debug: print(f" : : : {res} SAVING TO REDIS",fullkey,newVal)
 		# self._safePublish(self._id+"."+str(key), val) # maybe better to send pk and unpack
 		if "skip_publish" not in kwargs:# and 'origin' not in kwargs:
 		# if "skip_publish" not in kwargs:
@@ -2313,18 +2294,25 @@ class FreshRedis(xoBenedict):
 						t = self
 						l = len(channel.split("."))
 						co = 0
+						
+						print("ccccc",channel)
+						'''
 						for c in channel.split("."):
 							# print("cccccc",c)
 							if l-co == 1: channel = c
 							# else:t = t[c]
 							else:t:xoBenedict = t.__getitem__(c)
 							co+=1
+						'''
 						if debug or funMode: print("::: Updating",t._id+"."+channel,"=",res)
 						# t.__setitem__(channel, res, skip_publish = True)
 						pass
 						# t.__setitem__(channel, res, skip_change = True)
 						# self.__onchange__(channel, res, skip_publish= True)
-						t.__setitem__(channel, res, skip_publish = True, sender=sender, no_fetch=True)
+						print("cccccc", self._id, channel, self.keys())
+						self.__setitem__(channel,res, skip_publish = True, sender=sender, no_fetch=True)
+						pass
+						# t.__setitem__(channel, res, skip_publish = True, sender=sender, no_fetch=True)
 						pass
 
 					# self.__setitem__(channel, res)
@@ -2725,15 +2713,6 @@ def pnr(p, *a,**kw):
 
 if __name__ == '__main__':
 	testing()
-	#from xoDeque import xoBranch; bx = xoBranch(); xo = bx
-	#from xoDeque import xoBranch;
-	bx = xoBranch(); xo = bx
-	bx.a(1).b(1).c(1)
-	xo.tree()
-	xo.a.b(3333).c(4444)
-	xo.tree()
-	pass
-
 
 # Hint: Ctrl+Alt+B to open outline
 
@@ -2809,6 +2788,7 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 - export_keys <> import_keys[data/_key_store], on change update _root._key_store
 - new_branch(clone_prev + overwrite with new data)
 - object as table, + multiple objects in table, compare branches, compare children
+- fix show() when value is dict but not xo
 
 - reorder __dir__() to show keys first!
 
@@ -2830,7 +2810,7 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 - make xoBranch work on simple xo, and make new way to load inheritance, to mixmatch faster/better
 
 # For Users
-	xoGMoE, xoMagicLLight, xoAkeyo, xoEmployee, xoDelivery, xoStore
+	xoGMoE, xoMagicLLight, xoAkeyo, xoEmployee, xoDelivery, xoStore 
 
 # Frameworks For Developers
  		xoApps, LOP, xoAI, xoProjects, IFTAI
