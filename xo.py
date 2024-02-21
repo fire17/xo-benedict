@@ -2776,19 +2776,34 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 
 '''
-#FIX:
+#TODO/FIX:
 - DONE! - value returns {} instead of None if it doesnt exits
 - DONE! - fix flatten() not working for xoBranch
 - DONE! - add None support
-- ({dict}) and  =dict not working as should
-- fix _cast, update, setitem={} and call({})
+- DONE!!! - fix naming issue when new bid and updating
+
+- Done - work with arrays, dicts - i think done, need to tese more thoroghly - 
+- Done - i think, more testing - nest xo's comfturbly, meaning skip casting if type xo, so redis can be inside xobenedict and vise versa - Currently it inserted good, but str and tree dont render them properly (xo inside branch)
+- fix _cast, update, setitem={} and call({}), Done - items()
+- .a = {}, .a[0] = {}, .a({}) if call then update, if = , set and save as is.
+
 - add namespace change (which works with redis, and changes _id)
-- fix naming issue when new bid and updating
-- nest xo's comfturbly, meaning skip casting if type xo, so redis can be inside xobenedict and vise versa
-- export_keys <> import_keys[data/_key_store], on change update _root._key_store
 - new_branch(clone_prev + overwrite with new data)
+- export_keys <> import_keys[data/_key_store], on change update _root._key_store
 - object as table, + multiple objects in table, compare branches, compare children
+
 - fix show() when value is dict but not xo
+- actually show() error is because on original FreshRedis, it sends a dict of nested keys instead of final key,value - need to Fix
+- .tree for normal xoBenedict
+
+- major code cleanup, refactoring, refiling
+
+
+- write to @benedict 
+
+
+
+
 
 - reorder __dir__() to show keys first!
 
