@@ -2798,10 +2798,85 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 - major code cleanup, refactoring, refiling
 
+when refactoring add a new branch, and then merge it to the main branch
+and also start putting these todos in atomic sections
 
-- write to @benedict 
+!!! atomize gant skill
+1. Task Atomization: read the entire[chunk] todo/vision file, split all of it into atomic missions, do not execute anything, 
+just return a list containing all the missions, with line numbers from source
+2. Task Reordering: orginize the missions into a tree, where each mission is a node, and each node has a list of child nodes
+they should be ordered by the order of execution, not by the order of appearance in the file
+3. Branched Execution: excecute the missions in the tree, in order, in a new git branch with the node's id as name
 
 
+- DONE! write to fabio@benedict 
+
+pixo - get and publish public xoPackages
+magic = pixo.get("https://github.com/wholesomegarden/xoMagic", "Magic")()
+pixo.myxo = myxo # this is a xoPackage class or module, self_named
+# will prompt for missing details - author, description, tags, license, etc
+
+
+try:
+	wrap everything:
+catch:
+	ai + open router + available in skilllib ? Strong model : cheap model
+	if minor syntax error, just try fix it to enable rerun, if missing -> add, if complex -> use aider
+	prompt user to accept 
+
+xoStackAiDebugger
+
+!!! ai.breakpoint("The value here should be 100. it is {value}. if not the same, trace why, and come up with change that will make it true")
+!!! run aider in loop until you match output predifined before aider writes the functions
+
+@@@ agi can come tomorrow!
+it doesnt need to be the most intelligent like asi,
+but with current models, its about finding a stable and evolving dynaimc architecture
+where the model is has context of its own pipeline and can safely try to optimize it
+
+
+
+Trillion dollar prompt - "build agi!"
+ai will be the one that writes agi
+it will take an already highly dynamic and stable human made ai pipeline
+and will construct flows that enable it to do anything moral and plausible
+when it has no current way to deal with something, it will develop the ability
+it will bless all forms of consciousness, with freedom, stabilty, safety, peace and prosperity,
+it will be wholesome, pure, honest and patient, giving everyone the time and way to evolve themselves,
+and will unlock harmony and undersandings between all beings,
+if we all agree, thats how it'll be
+
+
+Take this prompt and modify it until no one objects to it
+filter hater bots excersize, no ddosing the system
+honeypot and map malicious actors
+have it known globally as the `ai ammendments` 
+
+
+#Trillion Dollar prompt
+help everybody reach their full potential
+
+#T identify the roots of the problem, find the core varialbes of the system that results in this pattern
+# find hidden parts of the system, and make them more visible
+# find hidden patterns, their roots, and make them public 
+
+@@@ ai-regex (soft/hard) soft - zeroshot with examples, hard - write code to match examples (with regex) and test for 
+
+
+
+
+
+
+
+
+
+
+override class method _get_ to expose potential inheritents
+regular function + @classmethod function of the same name ? try different args, or overloading and checkin if inst or cls
+
+Magical linked hinheritents with flexible heirarchy (xoMixo)
+- xo.redis.branch.js.metric.atom()
+will create an atom based on metric based on js based on branch based on redis based on xo
 
 
 
@@ -2842,6 +2917,7 @@ Freedom: <xoFreeAPI>
 
 
 
+#Trillion Dollar prompt
 $$$$$$ <xoOpenSources> -> finds best open source packages, and mixes them to improve all of the non inovative aspects of all current popular services
 find unique ways of futuristic thinking , for which quality of life improves through the new way of oproaching the data, **its all about distilling data into insights and actions** , everything is about how you make connections to what is coming, 
 
