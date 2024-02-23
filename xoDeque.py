@@ -8,7 +8,7 @@ import inspect
 from xo import xoBenedict, FreshRedis, debug
 import dill as pk
 
-from richtree import tree as richtree
+from richtree import treeXoBranch as richtree
 
 class xoDeque(xoBenedict):
 	_deque = []

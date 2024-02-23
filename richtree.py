@@ -54,7 +54,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 			isCurrent = current and myplace == obj.place().replace("[","(").replace("]",")")
 			# key, value = br._id.split(".")[-1]+" "+myplace+" "+obj.place() , br
 			key, value = br._id.split(".")[-1] , br
-			node_text = f"{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''}"+f"{' : '+color.CYAN+ repr(value['value']) if 'value' in value else ''}"
+			node_text = f"{color.LIGHTYELLOW_EX+str(key)}"+f"{' : ' if 'value' in value else ''}"+f"{''+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
 			# if isCurrent: node_text = "*[bold]"+node_text
 			icon = get_emoji(key,value.value if "value" in value else value)
 			branch = _tree.add(f"{'[bold]' if isCurrent else ''}{'[magenta]' if 'value' in value and isinstance(value['value'], str) else '[yellow]'}{'*' if isCurrent else ''}{icon if icon else 'open_file_folder'} {node_text}")
@@ -69,7 +69,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 					# print("WWWWWWW",key, type(value) )
 					# node_text = format_node_text(key, value)
 					# node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if value.get('value') and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
-					node_text = f"xx [bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''}"+f"{' : '+color.CYAN+ repr(value['value']) if 'value' in value else ''}"
+					node_text = f"xx [bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : ' if 'value' in value else ''}"+f"{''+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
 					# print("@@@@@@",key,type(value),node_text, )
 					icon = get_emoji(key,value)
 					# branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")

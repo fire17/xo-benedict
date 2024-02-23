@@ -23,7 +23,7 @@ counter =0
 
 keypath_separator = "."
 
-
+_redisConnectionKeys = ['host','port','db','password']
 
 
 class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
@@ -60,7 +60,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			nid = kwargs.pop("_id")
 		# print("_IDIDIDID", nid, "param")
 		# print("_IDIDIDID", nid, "param",_id)
-		namespace = self._type.__name__
+		namespace = self._type.__name__ if 'base' not in kwargs else kwargs.pop('base')
 		if nid:
 			self._id = nid
 			self._isRoot = False
@@ -2356,8 +2356,6 @@ class FreshRedis(xoBenedict):
 		# kwargs.pop("pass")
 		no_fetch = kwargs.pop("no_fetch") if "no_fetch" in kwargs else False
 		super().__init__(*args, **kwargs)
-		if type(self._root)!= type(self):
-			self._root = self
 		# if self._isRoot:
 			# print("Host",self._host)
 			# print("Port",self._port)
@@ -2374,6 +2372,8 @@ class FreshRedis(xoBenedict):
 		# 	print("!!!!!!!!!!!!!")
 		# time.sleep(1)
 		if self._isRoot:
+			if type(self._root) != type(self):
+				self._root = self
 			# print("RRRRRRRRRRRRRRRRRRRRRRRRooooooooooot")
 			if "host" not in kwargs:
 				kwargs["host"] = self._host
@@ -2392,7 +2392,8 @@ class FreshRedis(xoBenedict):
 					safekwargs = kwargs.copy()
 					if "password" in safekwargs: safekwargs["password"] = "************"
 					print(f"::: Connecting to {client_address}",safekwargs)
-					self._redis = RedisClient(**kwargs)
+
+					self._redis = RedisClient(**{k:v for k,v in kwargs.items() if k.lower() in [_redisConnectionKeys]})
 					xoRedis._redis = self._redis
 					success = self._redis.ping()
 					if not success:
