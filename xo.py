@@ -1888,10 +1888,10 @@ class xoRedis(xoBenedict):
 			return False
 
 
-	def fetchRedis(self,*args, **kwargs):
+	def fetchRedis(self, key = None, *args, **kwargs):
 		# print("::: Fetching ",self._id, res)
 		# print("::: Fetching ",self._id)
-		res = self._root._redis.get(self._id)
+		res = self._root._redis.get(self._id+"."+key if key is not None else self._id)
 		if res:
 			res = pk.loads(res)
 			gotRes = True
@@ -2098,7 +2098,27 @@ class Fresh(xoBenedict):
 class FreshRedis(xoBenedict):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
-	
+	def save_keys(self):
+		final = list(self.flatten().keys())
+		r = self._root._redis
+		# res = r.set(self._id+"._keys", final)
+
+		res = r.set(self._id+".keys()", pk.dumps(final))
+		# self["keys()"] = list(final)
+		print(f"::: {len(final)} keys have been saved")
+		return final
+	def load_keys(self):
+		# keys = self.fetchRedis(key="_keys")
+		keys = self.fetchRedis(key="keys()")
+		# keys = self.pop("keys()")
+		kcount = 0
+		if keys:
+			for key in keys:
+				self[key.replace('[','.').replace(']','')] = self.fetchRedis(key=key) if key != 'value' else self.fetchRedis()
+				kcount+=1
+		print(f"::: {kcount} keys have been loaded:", keys)
+		
+		return keys
 	def __onchange__(self, fullkey, value, *args, **kwargs):
 		if debug: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
 		# Save and publish
@@ -2465,10 +2485,10 @@ class FreshRedis(xoBenedict):
 			print(f"Redis is not connected")
 			return False
 
-	def fetchRedis(self,*args, **kwargs):
+	def fetchRedis(self, key = None, *args, **kwargs):
 		# print("::: Fetching ",self._id, res)
 		# print("::: Fetching ",self._id)
-		res = self._root._redis.get(self._id)
+		res = self._root._redis.get(self._id+"."+key if key is not None else self._id)
 		if res:
 			res = pk.loads(res)
 			gotRes = True
