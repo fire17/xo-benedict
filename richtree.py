@@ -15,13 +15,21 @@ COMMON_VALUES_EMOJIS = {
 	"Purple": "💜",
 	"eng": "🇬🇧"
 }
-# bpython = True
 bpython = False
-def tree(o, noplace=False, bpython=True):
+bpython = True
+def tree(o, noplace=False, bpython=True, _type=None):
 	rprint(display_xobranch(o,noplace=noplace) )
 	# rprint(,end="")
 	if not bpython: print(color.WHITE,end="")
-	# return display_object(o)
+
+def treeXoBranch(o, noplace=False, bpython=True, _type=None):
+	return rprint(display_xobranch(o,noplace=noplace) )
+
+def treeXo(o, noplace=False, bpython=True, _type=None):
+	return rprint(display_objectOG(o))
+	# return rprint(display_xobranch(o,noplace=noplace) )
+
+
 import ast
 # rprint(color.RESET)
 
@@ -46,7 +54,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 			isCurrent = current and myplace == obj.place().replace("[","(").replace("]",")")
 			# key, value = br._id.split(".")[-1]+" "+myplace+" "+obj.place() , br
 			key, value = br._id.split(".")[-1] , br
-			node_text = f"{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+			node_text = f"{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''}"+f"{' : '+color.CYAN+ repr(value['value']) if 'value' in value else ''}"
 			# if isCurrent: node_text = "*[bold]"+node_text
 			icon = get_emoji(key,value.value if "value" in value else value)
 			branch = _tree.add(f"{'[bold]' if isCurrent else ''}{'[magenta]' if 'value' in value and isinstance(value['value'], str) else '[yellow]'}{'*' if isCurrent else ''}{icon if icon else 'open_file_folder'} {node_text}")
@@ -61,7 +69,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 					# print("WWWWWWW",key, type(value) )
 					# node_text = format_node_text(key, value)
 					# node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if value.get('value') and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
-					node_text = f"xx [bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+					node_text = f"xx [bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''}"+f"{' : '+color.CYAN+ repr(value['value']) if 'value' in value else ''}"
 					# print("@@@@@@",key,type(value),node_text, )
 					icon = get_emoji(key,value)
 					# branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
@@ -83,9 +91,15 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 		brc += 1 
 	return _tree
 
-def display_objectOG(obj, _tree=None):
+def display_objectOG(obj, _tree=None, hideTop=True):
 	if _tree is None:
-		_tree = Tree(obj._id if hasattr(obj,"_id") else (obj.__name__ if hasattr(obj, "__name__") else "Object"), guide_style="bold bright_blue")
+		# print()
+		if not hideTop:
+			_tree = Tree("[bold deep_pink1]"+obj._id.split("[")[0] +"[/bold deep_pink1] : "+'[bold hot_pink]'+obj.__str__(noplace=noplace)+'[/bold hot_pink]'  if hasattr(obj,"_id") else (obj.__name__ if hasattr(obj, "__name__") else "Object"), guide_style="bold bright_blue")
+		else:
+			_tree = Tree("[bold deep_pink1]"+obj._id.split("[")[0] +"[/bold deep_pink1]", guide_style="bold bright_blue")
+	# if _tree is None:
+	# 	_tree = Tree(obj._id if hasattr(obj,"_id") else (obj.__name__ if hasattr(obj, "__name__") else "Object"), guide_style="bold bright_blue")
 	target = [b for b in obj._branch] if hasattr(obj,"_branch") and len(obj._branch)>0 else [obj]
 	# print()
 	for t in target:
@@ -102,16 +116,19 @@ def display_objectOG(obj, _tree=None):
 					# print("WWWWWWW",key, type(value) )
 					# node_text = format_node_text(key, value)
 					# node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if value.get('value') and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
-					node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+					# node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : '+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ' : '+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
+					node_text = f"[bold]{color.LIGHTYELLOW_EX+str(key)}"+f"{' : ' if 'value' in value else ''}"+f"{''+color.MAGENTA if 'value' in value and isinstance(value['value'], str) else ''+color.CYAN}"+f"{repr(value['value']) if 'value' in value else ''}"
 					# print("@@@@@@",key,type(value),node_text, )
-					icon = get_emoji(key,value)
+					# icon = get_emoji(key,value)
+					icon = get_emoji(key,value.value if "value" in value else value)
 					# branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
 					branch = _tree.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
 					display_objectOG(value, branch)
 				else:
 					# print("xxxxWWWWWWW",key,type(value) )
 					node_text = f"{key} : {color.MAGENTA if isinstance(value, str) else color.LIGHTCYAN_EX}{repr(value)}"
-					icon = get_emoji(key,value)
+					# icon = get_emoji(key,value)
+					icon = get_emoji(key,value.value if "value" in value else value)
 					# branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
 					branch = _tree.add(f"{icon if icon else 'open_file_folder'} {node_text}")
 					# node_text = format_node_text(key, value)

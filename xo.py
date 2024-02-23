@@ -12,6 +12,8 @@ import dill as pk
 from pyfiglet import figlet_format as figlet
 from colorama import Fore as color
 
+from richtree import treeXo as richtree
+
 
 debug = True
 debug = False
@@ -309,9 +311,14 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			return self
 			# return self["value"] if "value" in self else self
 
-
 	#TODO update and constructor of dicts, final value as obj
 
+	def tree(self, noplace=True, ret=False):
+		print()
+		res = richtree(self)
+		if ret:
+			return res
+		
 	def __contains__(self, q, *args, **kwargs):
 		# print("QQQQQQQQQQQQ",q)
 		return super().__contains__(q,*args, **kwargs)
