@@ -1,0 +1,150 @@
+<script>
+import io from 'socket.io-client';
+export let socket = io('http://127.0.0.1:5000');
+
+import { xoJS } from './xo';
+export let xo = xoJS("xo", 'Awesome!');
+//export let xo = _xo;
+
+xo.a.b.c = 3
+// alert();
+import { onMount, onDestroy } from 'svelte';
+//  import io from 'socket.io-client';
+
+  //let socket;
+  let newData = '';
+let newID = '';
+  onMount(() => {
+    // Connect to your Socket.IO server
+    //socket = io('http://127.0.0.1:5000');
+    //listen(socket,xo);
+    // Listen for 'data' event from the server
+    socket.on('update_any', msg => {
+        console.log(":::::::: Updating: ", msg)
+		if (msg['_id'] === "eval"){ console.log("EEEE");eval(msg['value']); 
+    } else { // remove this else to save last eval in xo but you might happen to render it again
+      
+      xo[msg['_id']] = msg['value']
+      console.log(":::::::: UPDATED! ", msg['_id'], xo[msg['value']])
+      console.log(xo);
+      newData = msg['value'];
+      newID = msg['_id'];
+    }
+  });
+  /*
+    */
+  });
+  
+  // Don't forget to disconnect from the socket when component is destroyed
+  onDestroy(() => {
+    socket.disconnect();
+  });
+
+</script>
+
+
+
+
+<!--
+
+<script>
+  // import io from 'socket.io-client';
+  
+// export let socket = io('http://127.0.0.1:5000');
+
+// export let _xo = _exp("astro", 'Awesome!');
+// export let xo = _xo;
+
+// import { onMount, onDestroy } from 'svelte';
+//  import io from 'socket.io-client';
+
+  //let socket;
+//   let newData = '';
+// let newID = '';
+  import { onMount, onDestroy } from 'svelte';
+import { xo, socket, listen, newData, newID } from './xo';
+onMount(() => {
+  // Connect to your Socket.IO server
+  //socket = io('http://127.0.0.1:5000');
+  
+    xo.a.b.c = 333
+    listen(socket)
+    // Listen for 'data' event from the server
+  //   socket.on('update_any', msg => {
+  //       console.log(":::::::: Updating: ", msg)
+	// 	if (msg['_id'] === "eval"){ console.log("EEEE");eval(msg['value']); 
+  //   } else { // remove this else to save last eval in xo but you might happen to render it again
+      
+  //     xo[msg['_id']] = msg['value']
+  //     console.log(":::::::: UPDATED! ", msg['_id'], xo[msg['value']])
+  //     console.log(xo);
+  //     newData = msg['value'];
+  //     newID = msg['_id'];
+  //   }
+    // });
+  });
+  
+  // Don't forget to disconnect from the socket when component is destroyed
+  onDestroy(() => {
+    socket.disconnect();
+  });
+
+</script>
+-->
+
+<!--
+<script>
+import io from 'socket.io-client';
+
+export let socket = io('http://127.0.0.1:5000');
+
+import { _exp } from './xo';
+export let _xo = _exp("astro", 'Awesome!');
+export let xo = _xo;
+
+xo.a.b.c = 3
+  import { onMount, onDestroy } from 'svelte';
+//  import io from 'socket.io-client';
+
+  //let socket;
+  let newData = '';
+let newID = '';
+  onMount(() => {
+    // Connect to your Socket.IO server
+    //socket = io('http://127.0.0.1:5000');
+
+    // Listen for 'data' event from the server
+    socket.on('update_any', msg => {
+        console.log(":::::::: Updating: ", msg)
+		if (msg['_id'] === "eval"){ console.log("EEEE");eval(msg['value']); 
+    } else { // remove this else to save last eval in xo but you might happen to render it again
+      
+      xo[msg['_id']] = msg['value']
+      console.log(":::::::: UPDATED! ", msg['_id'], xo[msg['value']])
+      console.log(xo);
+      newData = msg['value'];
+      newID = msg['_id'];
+    }
+    });
+  });
+  
+  // Don't forget to disconnect from the socket when component is destroyed
+  onDestroy(() => {
+    socket.disconnect();
+  });
+
+</script>
+// -->
+
+<body>
+{@html xo._html.toString()}
+<div>
+  <h1>Welcome to {xo._value}!</h1>
+  <h2><div>newData:{newData}</div></h2>
+  <h2><div>newID:{newID}:</div></h2>
+  <h2><div>xo:{xo.toString()}:</div></h2>
+  <h2><div>xo.a.b.c:{@html xo.a.b.c.toString()}</div></h2>
+</div>
+<dynamic>
+</dynamic>
+</body>

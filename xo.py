@@ -2804,6 +2804,8 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 
 '''
+# General Notes
+
 #TODO/FIX:
 - DONE! - value returns {} instead of None if it doesnt exits
 - DONE! - fix flatten() not working for xoBranch
@@ -3057,4 +3059,31 @@ dynamically inserting eachothers words, with time delays and visuals, with a con
 
 
 '''
+
+
+
+
+
+
+
+
+
+'''
+|   Main Chat  |   Utilites and calls
+|              |   
+|     Q:       |   
+|      ....?   |   
+|              |  ----> SemanticRounter -> search online				[no call to llm]
+|              |  ----> cheap llm -> uses search function based on Q	[CHEAP LLM CALL]
+|    A:        |  <---- enter results in context + Reply                [call main llm ]
+|      .....!  |   
+|              |   
+|              |   
+|              |   
+
+'''
+
+
+
+
 
