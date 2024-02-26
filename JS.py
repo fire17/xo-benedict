@@ -48,7 +48,8 @@ if withOAuth:
 
          
 
-redis = lo = xoRedis(host="localhost",port=6379)
+# redis = lo = xoRedis(host="localhost",port=6379)
+redis = lo = xoRedis(base = 'web')
 # redis = xoRedis("demo",host='wise-coyote-46085.upstash.io',port=46085,password='7fdf57fde49e4eadb7a260d0e38230a2',ssl=True)
 # redis = xoRedis("demo",host='ethical-monarch-46113.upstash.io',port=46113,password='7a984cbd2d4b408e8d84c4c44deea3c5',ssl=True)
 port = 5000

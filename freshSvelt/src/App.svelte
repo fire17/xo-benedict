@@ -59,10 +59,20 @@ let newID = '';
   {@html xo.html.toString()}
 <div>
   <h1>{xo.welcome.toString()} {xo.name.toString()}!</h1>
-  <h4><div>newData: {newData}</div></h4>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Value / Render</th>
+    </tr>
+    <tr><td><h4>newData</h4></td> <td>{newData}</td></tr>
+    <tr><td><h4>newID</h4></td><td> {newID}:</td></tr>
+    <tr><td><h4>xo: </h4></td><td>{xo.toString()}:</td></tr>
+    <tr><td><h4>xo.a.b.c: </h4></td><td>{@html xo.a.b.c.toString()}</td></tr>
+</table>
+  <!-- <h4><div>newData: {newData}</div></h4>
   <h4><div>newID: {newID}:</div></h4>
   <h4><div>xo: {xo.toString()}:</div></h4>
-  <h4><div>xo.a.b.c: {@html xo.a.b.c.toString()}</div></h4>
+  <h4><div>xo.a.b.c: {@html xo.a.b.c.toString()}</div></h4> -->
 </div>
 <dynamic>
 </dynamic>

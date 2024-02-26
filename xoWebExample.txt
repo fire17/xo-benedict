@@ -1,0 +1,10 @@
+
+python3.11 JS.py
+$(cd freshSvelt && npm run dev)
+python3.11 programB.py
+python3.11
+
+from xo import FreshRedis as xoRedis
+xo = xoRedis(base='web')
+
+xo.all = ['_value', 'yo yo yo']

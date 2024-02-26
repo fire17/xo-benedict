@@ -1,15 +1,21 @@
 # from xo.redis import xoRedis
 from xo import FreshRedis as xoRedis
-redis = lo = xoRedis(host="localhost",port=6379)
+# redis = lo = xoRedis(host="localhost",port=6379)
+redis = lo = xoRedis(base = 'web')
 import random as r
 redis.all = ['a.b.c',12345]
-redis.all = ['html',f"<br><h2 style='color: {r.choice(['cyan','purple','green','yellow'])};'>Dynamic HTML!</h2>"]# {xo._value}</h1>"]
+redis.all = ['html',f"<br><h2 style='color: {r.choice(['cyan','purple','green','blue','orange','violet'])};'>Dynamic HTML!</h2>"]# {xo._value}</h1>"]
 # redis.all = ['eval',"alert('Py <> JS');"]
 # redis.all = ['eval',"alert(xo._value);"]
 
 render = {"a.b.c":999,"welcome":"Welcome to","name":"XO!", "_value":"Sweet!"}
 for k,v in render.items():
     redis.all = [k,v]
+
+
+# a short function that outputs a random valid hex color such as #007bff
+def randColor():
+    return '#%06x' % r.randint(0, 0xFFFFFF)
 
 website = {"dynamic":'''
 <style>
@@ -63,7 +69,7 @@ website['dynamic']='''
             padding: 20px;
         }
         .hero {
-            background-color: #007bff;
+            '''+f'''background-color: {randColor()};'''+'''
             color: white;
             padding: 100px 0;
         }
@@ -92,6 +98,9 @@ website['dynamic']='''
         <h1>Welcome to our Action-Packed Page! {xo._value}</h1>
         <p>Ready to experience some thrilling adventures? Click the button below to get started!</p>
         <button class="button" onclick="showAlert()">Start the Adventure!</button>
+    </div>
+    <div class="container">
+        <button class="button" onclick="showAlert()">Test JS!</button>
     </div>
     <div class="container">
         <h2>About Us</h2>
@@ -195,7 +204,19 @@ if (dynamicElement) {
 
 redis.all = ['eval',run_home]
 #redis.all = ['eval',run_home]
-
+import time
+c = 0
+# while True:
+#     redis.all = ['html',f"<br><h2 style='color: {r.choice(['cyan','purple','green','yellow'])};'>Dynamic HTML! {c}</h2>"]# {xo._value}</h1>"]
+#     time.sleep(0.1)
+#     c+=1
+msg = "Type what you want to see"
+while True:
+    redis.all = ['a.b.c',f"<br><h2 style='color: {r.choice(['cyan','purple','green','blue','orange','violet'])};'> {msg} {c}</h2>"]# {xo._value}</h1>"]
+    # time.sleep(0.1)
+    i = input("Type what you want to see: ")
+    msg = i if i != '' else msg
+    c+=1
 
 for_gpt = '''
 
@@ -258,3 +279,4 @@ docker + xoFiles + gpt-linux-hal-prompt + astro's Houston
 
 
 '''
+

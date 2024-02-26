@@ -13,7 +13,8 @@ from pyfiglet import figlet_format as figlet
 from colorama import Fore as color
 
 from richtree import treeXo as richtree
-
+from rich import pretty
+pretty.install()
 
 debug = True
 debug = False
@@ -517,6 +518,10 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		return hash(self._id)
 	
 	def __setitem__(self, key, value, skip = False,*a, **kw):
+		if key in ['awehoi234_wdfjwljet234_234wdfoijsdfmmnxpi492', 'aihwerij235234ljsdnp34ksodfipwoe234234jlskjdf', '__rich_repr__', '_fields' ]:
+			# support rich.pretty
+			# print( "@@@@@@@@@ awehoi234_wdfjwljet234_234wdfoijsdfmmnxpi492")
+			return 
 		if isinstance(value, ignore):
 			# print("IIIIIIIIIIIIIIIIIIIIIII")
 			# print("IIIIIIIIIIIIIIIIIIIIIII")
@@ -2507,7 +2512,7 @@ class FreshRedis(xoBenedict):
 		if len(args) == 0:
 			print("3434343434 call")
 			print("3434343434 call")
-			print("3434343434 call")
+			print("3434343434 call",kwargs)
 			res = self.fetchRedis()
 			# print("MATCH:",res==self)
 			if res and res != self:
