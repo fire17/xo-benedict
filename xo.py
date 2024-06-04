@@ -12,7 +12,7 @@ import dill as pk
 from pyfiglet import figlet_format as figlet
 from colorama import Fore as color
 
-from richtree import treeXo as richtree
+from .richtree import treeXo as richtree
 from rich import pretty
 pretty.install()
 
@@ -54,14 +54,17 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# self.__dict__ = DictWrapper(self.__dict__, castFunc = self.__dict_wrap__)
 		self._subscribers = []
 		self._isRoot = True
-		
-		
+
+
 		nid = None
 		if "_id" in kwargs:
 			nid = kwargs.pop("_id")
 		# print("_IDIDIDID", nid, "param")
 		# print("_IDIDIDID", nid, "param",_id)
+		#
 		namespace = self._type.__name__ if 'base' not in kwargs else kwargs.pop('base')
+		if "namespace" in kwargs:
+			namespace = kwargs.pop('namespace')
 		if nid:
 			self._id = nid
 			self._isRoot = False
@@ -71,7 +74,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			self._id = namespace
 
 		if self._isRoot and len(args) >= 1 and isinstance(args[0],str):
-			namespace = args[0]
+			namespace = str(args[0]).split(".")[0].split("[")[0]
 			newArgs = list(args);newArgs.remove(args[0])
 			args = newArgs
 		# else:
@@ -79,14 +82,14 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	pass
 		# 	print("XXXXX",self._isRoot, args )
 		# print("iiiiiiiiiiiiiiii",self._id, ":::",args,":::",kwargs)
-		new = "Root" if self._isRoot else "new" 
-		
+		new = "Root" if self._isRoot else "new"
+
 		if debug:
 			print(f"::: Creating {new} {namespace} with ID:",self._id, ":::",args,":::",kwargs)
 		# if len(args)==1:
 		# 	print("TTTTTTTTTT",type(args[0]))
 		# print(":::",self._id)
-		
+
 		if "skip_fetch" in kwargs:
 			self._params["skip_fetch"] = kwargs.pop("skip_fetch")
 
@@ -96,7 +99,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("iiiiiiiiiiiiiiiiiiiiiiiiiiiii",":::",my_c,":::",len(args))
 		kwargs["keyattr_dynamic"] = True
 		kwargs["keypath_separator"] = keypath_separator
-		
+
 		setRoot = False
 		# if "_parent" not in kwargs:
 			# print("RRRRRRRRRRRRRRRRRRRRRRRRooooooooooot")
@@ -112,9 +115,9 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	kwargs["_isRoot"] = False
 		# 	kwargs["_root"] = kwargs["_parent"]["_root"]
 
-			
+
 		# args = list(args)
-		
+
 		# no args other than self
 		# print("aaaaaaaaaaaaaa",args,kwargs)#, args[0] == self)
 		if len(args) == 1 and isinstance(args[0], xoBenedict):
@@ -134,7 +137,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# self.set("_root",[self])
 			return
 		# super().__init__(*args, **kwargs)
-		# if "_skip" not in kwargs or not kwargs["_skip"]:  
+		# if "_skip" not in kwargs or not kwargs["_skip"]:
 		#     super().__init__(*args, **kwargs)
 		extras = []
 		if len(args)>=1:
@@ -191,7 +194,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	kwargs["_isRoot"] = False
 		# 	kwargs["_root"] = kwargs["_parent"]["_root"]
 		extra_keys = {k:v for k,v in kwargs.items() if k not in self.ignore_keys}
-		
+
 		# if setRoot:
 			# extra_keys["_root"] = kwargs["_parent"]["_root"]
 			# extra_keys["_root"] = self
@@ -207,7 +210,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					if isinstance(a,dict):
 						for k in a:
 							# kwargs[k] = a[k]
-							
+
 							extra_keys[k] = a[k]
 					else:
 						extras.append(a)
@@ -221,10 +224,10 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					# return
 		# print("eeeeeeeeeeee",extras)
 		# print("yo yo yo ", kwargs == self)
-		
+
 		if "value" not in extra_keys and len(extras) > 0:
 			extra_keys["value"] = extras[0] if len(extras)==1 else extras
-		
+
 		update_incoming = True # Set to False to work leaner (checking for self[key] doubles the calls)
 		# update_incoming = False # Set to False to work leaner (checking for self[key] doubles the calls)
 		if update_incoming:
@@ -274,7 +277,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 					else:
 						if key == "value":
 							print(" V V V V")
-							
+
 							print("~~~~~~~~R2",key,":::",my_c,":::")
 							self[key] = value
 							pass
@@ -307,7 +310,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				else:
 					self["value"] = args[0]
 			elif len(args) > 1:
-				
+
 				self["value"] = list(args)
 			return self
 			# return self["value"] if "value" in self else self
@@ -319,11 +322,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		res = richtree(self)
 		if ret:
 			return res
-		
+
 	def __contains__(self, q, *args, **kwargs):
 		# print("QQQQQQQQQQQQ",q)
 		return super().__contains__(q,*args, **kwargs)
-	
+
 	def __getitem__(self, key, *args, **kwargs) -> benedict:
 		try:
 			return super().__getattribute__(key, *args, **kwargs)
@@ -333,7 +336,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			res = super().__getitem__(key, *args, **kwargs)
 			return res
 			# res = super().__getitem__(key, *args, **kwargs)
-		
+
 		# if key not in self.__dict__:
 		# getKeys = True
 		# print("GGGGGGGGGG",self._id,key)
@@ -373,7 +376,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				print("YOOOOOOOOOOOOOxxxxxx")
 			except:
 				print("YOOOOOOOOOOOOO",self._id,key)
-				
+
 				target = super().__getitem__(key)
 				# try:
 				# # target = super().__getitem__(key)
@@ -425,11 +428,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				key = key[:-6]
 			return key
 		return {fix(k):v for k,v in super().flatten(rep).items()}
-	
+
 	def items(self, fast = False):
 		# for key, value in BaseDict.items(self):
 		for key, value in BaseDict.items(self):
-			
+
 			# print("i",key,type(value))
 			if fast or True:
 				# print("FAST")
@@ -487,8 +490,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			res = self.__onchange__(self._id+"."+str(key), value,*a,**kw)
 			if res != None:
 				value = res
-			
-			
+
+
 
 		if key == "value":
 			res = super().__setitem__(key, value)
@@ -509,19 +512,19 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				print('xxx')
 				child.value = value
 				res = super().__setitem__(key,child)
-		
+
 		# print("SETTING",self._id,key)
 		return res
 
 	def __hash__(self):
 		return hash(super())
 		return hash(self._id)
-	
+
 	def __setitem__(self, key, value, skip = False,*a, **kw):
 		if key in ['awehoi234_wdfjwljet234_234wdfoijsdfmmnxpi492', 'aihwerij235234ljsdnp34ksodfipwoe234234jlskjdf', '__rich_repr__', '_fields' ]:
 			# support rich.pretty
 			# print( "@@@@@@@@@ awehoi234_wdfjwljet234_234wdfoijsdfmmnxpi492")
-			return 
+			return
 		if isinstance(value, ignore):
 			# print("IIIIIIIIIIIIIIIIIIIIIII")
 			# print("IIIIIIIIIIIIIIIIIIIIIII")
@@ -541,7 +544,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 			# print("SSSSSSSSSsxxxxxxxx")
 			# self._updateSubscribers_(res)
-			
+
 			# if res != None:
 			# 	value = res
 			pass
@@ -566,7 +569,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			if newKey and key=="value" or key!=value and "origin" in kw: kw["skip_publish"] = True
 			if (key == 'value' and value != {}):
 				self._updateSubscribers_(value)
-				
+
 			if "origin" in kw: kw["skip_publish"] = True
 			if "origin" in kw and "get_attr" in kw['origin']: kw["skip_change"] = True
 			# print("!!!!!!!!",kw)
@@ -594,7 +597,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# print("set KKKKKKKK",key)
 		if key != "value" and not isinstance(value, dict) and not isinstance(value, obj_type):# and not skip:
 			# print("111111111111", self._id,key, value)
-			
+
 			# value = obj_type({"value":value}, keyattr_dynamic=True, _parent = self)
 			# print("NEXT:",self._id+"."+str(key))
 			# value = xoBenedict({"value":value}, _id = self._id+"."+str(key), keyattr_dynamic=True)
@@ -622,7 +625,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 						# pass
 						# print("HERERERERERE111111")
 						# self[key].value = value
-						
+
 						# print("#########1111111111",key,value, kw)
 						# child.__setattr__("value",value)
 						child.__setitem__("value",value, **kw)
@@ -659,7 +662,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				# newobj.value = value
 				newobj.__setitem__("value",value,origin='setitem:new_value2', *a, **kw)
 				value = newobj
-				
+
 				# print("xxx finish quicker here")
 			# print("set 22222222222", value)
 			# value.__setitem__(,value, skip = True)
@@ -723,7 +726,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		# 	for k in value:
 		# 		# self[key].__dict__[k] = self[key][k]
 		# 		# self[key].__dict__[k] =
-				 
+
 		# 		print("@@@@@@@@@@@@",key)
 		# 		if key in self.__dict__:
 		# 			self.__dict__[key].__dict__[k] = self[key][k]
@@ -748,7 +751,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 	#     for key, value in super().items():
 	#         # yield (key, self._cast(value))
 	#         yield (key, value)
-	
+
 
 	def _cast(self, value, key = None):
 		"""
@@ -758,7 +761,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 		if type(self) == type(value) or key == None:
 			return value
-		
+
 		if debug: print(f"{self._id=}.{key} CASTING :",type(value))
 		# print("Cast", self)
 		obj_type = type(self)
@@ -770,7 +773,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 				"check_keys":False,}
 			# if key:
 			# 	data["_id"] = key
-			
+
 			# return obj_type(
 			target = self._id if key is None or key == '' else self._id+"."+str(key)
 			print("TTTTTTTT:",target)
@@ -818,11 +821,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 	def append(self, other):
 		if "value" in self:
-			if isinstance(self["value"],list): 
+			if isinstance(self["value"],list):
 				for item in other:
 					self["value"].append(item)
 			else:
-				if isinstance(other,list): 
+				if isinstance(other,list):
 					self["value"] = [self["value"]]
 					for item in other:
 						self["value"].append(item)
@@ -854,11 +857,11 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		otherT = type(other)
 		if isinstance(other,dict):
 			for k in other:
-				self[k] = other[k]			
+				self[k] = other[k]
 			return self
-		if otherT == list:			
+		if otherT == list:
 			return self.append(other)
-		
+
 		if "value" in self:
 			if isinstance(self["value"],list) and not isinstance(other,list):
 				return self.append([other])
@@ -873,7 +876,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return self["value"] - other
 		return self._cast(super().__sub__(other))
-	
+
 	def __isub__(self, other):
 		if "value" in self:
 			self["value"] -= other
@@ -897,14 +900,14 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return self["value"] / other
 		return self._cast(super().__truediv__(other))
-	
+
 	def __itruediv__(self, other):
 		if "value" in self:
 			self["value"] /= other
 		else:
 			super().__itruediv__(other)
 		return self
-	
+
 	def __floordiv__(self, other):
 		if "value" in self:
 			return self["value"] // other
@@ -945,7 +948,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		else:
 			super().__ipow__(other)
 		return self
-	
+
 	def __radd__(self, other):
 		if "value" in self:
 			if isinstance(other, str) and not isinstance(self["value"], str) \
@@ -973,7 +976,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return other // self["value"]
 		return self._cast(super().__rfloordiv__(other))
-	
+
 	def __rmod__(self, other):
 		if "value" in self:
 			return other % self["value"]
@@ -983,7 +986,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return other ** self["value"]
 		return self._cast(super().__rpow__(other))
-	
+
 	'''
 	def __lshift__(self, other):
 		if "value" in self:
@@ -1020,7 +1023,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		else:
 			super().__iand__(other)
 		return self
-	
+
 	def __or__(self, other):
 		if "value" in self:
 			return self["value"] | other
@@ -1032,25 +1035,25 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		else:
 			super().__ior__(other)
 		return self
-	
+
 	def __xor__(self, other):
 		if "value" in self:
 			return self["value"] ^ other
 		return self._cast(super().__xor__(other))
-		
+
 	def __ixor__(self, other):
 		if "value" in self:
 			self["value"] ^= other
 		else:
 			super().__ixor__(other)
 		return self
-	
+
 	'''
 	def __rlshift__(self, other):
 		if "value" in self:
 			return other << self["value"]
 		return self._cast(super().__rlshift__(other))
-	
+
 	def __rrshift__(self, other):
 		if "value" in self:
 			return other >> self["value"]
@@ -1090,22 +1093,22 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return ~self["value"]
 		return super().__invert__()
-		
+
 	def __complex__(self):
 		if "value" in self:
 			return complex(self["value"])
 		return super().__complex__()
-	
+
 	def __int__(self):
 		if "value" in self:
 			return int(self["value"])
 		return super().__int__()
-	
+
 	def __float__(self):
 		if "value" in self:
 			return float(self["value"])
 		return super().__float__()
-	
+
 	def __round__(self, n=None):
 		if "value" in self:
 			return round(self["value"], n)
@@ -1115,7 +1118,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return math.trunc(self["value"])
 		return super().__trunc__()
-	
+
 	# def __floor__(self):
 	# 	if "value" in self:
 	# 		return math.floor(self["value"])
@@ -1130,8 +1133,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return bool(self["value"])
 		return super().__bool__()
-	
-	
+
+
 
 	def __eq__(self, other):
 		if "value" in self:
@@ -1152,7 +1155,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return self["value"] <= other
 		return self._cast(super().__le__(other))
-	
+
 	def __gt__(self, other):
 		if "value" in self:
 			return self["value"] > other
@@ -1178,16 +1181,16 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self:
 			return self["value"] @ other
 		return self._cast(super().__matmul__(other))
-	
+
 	def __rmatmul__(self, other):
 		if "value" in self:
 			return other @ self["value"]
 		return self._cast(super().__rmatmul__(other))
-	
-	
 
 
-	
+
+
+
 	def xxx(self, *args, **kwargs):
 		print("XXXXXXXXXXXXXXXXXXX")
 
@@ -1203,7 +1206,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if self._pointer:
 			return repr(self._dict)
 		return super().__repr__()
-	
+
 	# def __str__(self):
 	#     print("ssssssssss",len(self.keys()),self.keys())
 	#     if self._pointer:
@@ -1214,7 +1217,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if "value" in self and len(self.keys()) == 1:
 			if "__len__" in self.value.__dir__(): return len(self.value)
 		return super().__len__()
-		
+
 	def __str__(self):
 		# print("S S S",len(self.keys()), self.keys())
 		if "value" in self and len(self.keys()) == 1:
@@ -1228,7 +1231,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			elif isinstance(self.value, str):
 				# print("eeeeeeeeee",self.value,)
 				return f'"{self.value}"'
-			 
+
 			# # print(" VLAST ")
 			# # if isinstance(self.value, str):
 			# if type(self.value)== str:
@@ -1304,7 +1307,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 
 	def to_csv(self, key="values", columns=None, columns_row=True, **kwargs):
 		#TODO: MAKE SURE NESTING WORKS -> check og benedict to see behavior
-		
+
 		"""
 		Encode a list of dicts in the current dict instance in CSV format.
 		Encoder specific options can be passed using kwargs:
@@ -1318,8 +1321,8 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			return self._encode([kv for kv in self.dict().items()], "csv", **kwargs)
 		else:
 			return to_csv(self.dict()[key], **kwargs)
-	
-		
+
+
 	def show(self, t="    ", count=0, inLoop=False, ret=False):
 		# print("ssssssssssssssss..............",self._id)
 		s = ""
@@ -1433,7 +1436,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if len(D) == 1 and "value" in D:
 			return self._encode(D["value"], "json", **kwargs)
 		return self._encode(D, "json", **kwargs)
-	
+
 	def _getRoot(self):
 		if self._parent is not None:
 			return self._parent._getRoot()
@@ -1444,7 +1447,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		if attr == "value" and ("value" not in self or self["value"] == {}):
 			return None
 		attr_message = f"{self.__class__.__name__!r} object has no attribute {attr!r}"
-		if not self._keyattr_enabled:
+		if not self._keyattr_enabled and False:
 			raise AttributeError(attr_message)
 		try:
 			if attr not in self and "value" in self and isinstance(self.value,object) and attr in self.value.__dir__():
@@ -1453,7 +1456,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 		except KeyError:
 			if attr.startswith("_"):
 				raise AttributeError(attr_message) from None
-			if not self._keyattr_dynamic:
+			if not self._keyattr_dynamic and False:
 				raise AttributeError(attr_message) from None
 			# self.__setitem__(attr, {})
 			# print("@@@@@@",self._id+"."+attr)
@@ -1508,7 +1511,7 @@ class xoBenedict(benedict):#KeyattrDict, KeypathDict, IODict, ParseDict):
 			# if "value" in self:
 			# sub(value,*v, **kw)
 			try:
-				sub(value,*v, **kw)	
+				sub(value,*v, **kw)
 			except:
 				traceback.print_exc()
 
@@ -1523,7 +1526,7 @@ class xoEvents(xoBenedict):
 		# self.__class__.__dir__ = lambda self, *a, **kw: list(set(dir(self)) - set(ignore))
 		# self.__dir__ = self.keys
 		# self.__dir__ = self.keys
-		
+
 	def __getitem__(self, key, *args, **kwargs):
 		print(f"Getting {self._id=}.+{key}", args, kwargs)
 		res = super().__getitem__(key, *args, **kwargs)
@@ -1557,7 +1560,7 @@ class xoEvents(xoBenedict):
 		print("XXXXXXXX",[x for x in super().__dir__() if x in self.keys()])
 		return [x for x in super().__dir__() if x in self.keys()]
 		return list(set(super().__dir__()) - set(ignore))
-	
+
 
 import traceback
 
@@ -1584,7 +1587,7 @@ def getArgsFromEnv(defaultHost = host, defaultPort = port):
 	import os
 	host = os.getenv("REDIS_HOST", defaultHost)
 	port = os.getenv("REDIS_PORT", defaultPort)
-	return host, port	
+	return host, port
 host, port = getArgsFromEnv(host, port)
 from redis import Redis as RedisClient
 
@@ -1592,7 +1595,7 @@ from redis import Redis as RedisClient
 class xoRedis(xoBenedict):
 	_host = host
 	_port = port
-	
+
 	_db = 0
 	_rootName = "root"
 	_namespace = "namespace"
@@ -1632,8 +1635,8 @@ class xoRedis(xoBenedict):
 		#     if item['type'] == 'message':
 		#         print(item['data'])
 		# print("DONE")
-	
-	
+
+
 	# TODO: Also, implement option to lazy load, (set _needsUpdate or something like so)
 	def _directBind(self, msg, *args, **kwargs):
 		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
@@ -1666,11 +1669,11 @@ class xoRedis(xoBenedict):
 
 					# f = self
 					# print("PRE", self._id, "channel:", channel,"SELFID",self._id)
-					
+
 					# f = f[channel]
 					# if channel.startswith(self._id):
 					# 	channel = ".".join(channel.split(".")[1:])
-					
+
 					'''
 					for c in channel.split("."):
 						# print("c:",c)
@@ -1681,7 +1684,7 @@ class xoRedis(xoBenedict):
 						f = f[c]
 					'''
 					# print("POST",f._id)
-					
+
 					# print("ggggg2")
 
 					# f = xo[msg["channel"].decode().strip("xo/").replace("/", ".")]
@@ -1695,7 +1698,7 @@ class xoRedis(xoBenedict):
 						if sender == hash(self._root._redis):
 							# LEGACY
 							# print("@@@@@@@@@@@@@@@ WORKING! SKIPPING SELF UPDATE", channel, "")
-							return 
+							return
 						# print("try res:",res)
 					except:
 						print(" - - - COULD NOT UNPICKLE", self._id, ":::", res)
@@ -1712,7 +1715,7 @@ class xoRedis(xoBenedict):
 					print("$$$$$$$$",self._id, self._isRoot)
 
 
-					# target = 
+					# target =
 					# print("@@@@@@@@@@@2 UPDATING ", target._id, target._type)
 					if key == "value" or key not in target or target[key].value != res:
 						print("\n:::UUUUUUUUUUUUUUUUUUU Updating ",target._id+"."+key)
@@ -1733,7 +1736,7 @@ class xoRedis(xoBenedict):
 						# else:
 						# 	print()
 						return
-					
+
 					if channel in self:
 						if channel not in self:
 							print("Creating!!!!!!!!!!!! ",channel)
@@ -1784,7 +1787,7 @@ class xoRedis(xoBenedict):
 		self._host = kwargs["host"] if "host" in kwargs else host
 		self._port = kwargs["port"] if "port" in kwargs else port
 		password = kwargs["password"] if "password" in kwargs else ""
-		
+
 		# if self._isRoot: # should work the same
 		if "host" in kwargs: kwargs.pop("host")
 		if "port" in kwargs: kwargs.pop("port")
@@ -1795,14 +1798,14 @@ class xoRedis(xoBenedict):
 		# if self._isRoot:
 			# print("Host",self._host)
 			# print("Port",self._port)
-			# if password != "":		
+			# if password != "":
 				# print("Pass","************")
 		# self._rootName = "xoRedis"
 		# self._namespace = self._rootName
 		self._rootName = self._type.__name__
 		self._namespace = self._id
 
-		
+
 		# if self._getRoot()._redis:
 		# 	pass
 		# 	print("!!!!!!!!!!!!!")
@@ -1817,7 +1820,7 @@ class xoRedis(xoBenedict):
 				kwargs["db"] = self._db
 			if password != "":
 				kwargs["password"] = password
-			
+
 			# self._redis = RedisClient(host=self._host, port=self._port, db=self._db)
 			# self._redis = RedisClient(**kwargs)
 			client_address = str(kwargs["host"])+":"+str(kwargs["port"])+"@"+str(kwargs["db"])
@@ -1869,17 +1872,17 @@ class xoRedis(xoBenedict):
 				print("@@@@@@@@@@")
 				print("@@@@@@@@@@")
 				self.value = found
-				
+
 
 			# print("__FETCHING DONE",self._id)
 			# print("__PRINTING DONE_____________")
-		
+
 		self._binded = False
 		self._live = False
 			# self._pubsub = self._getRoot()._redis.pubsub()
 
 
-	
+
 	def _checkIfExist_(self, *args,**kwargs):
 		# print(" WILL CHECK IF EXISTS ", self._id, args, kwargs, " ON REDIS")
 		# Check if key exits on redis
@@ -1904,7 +1907,7 @@ class xoRedis(xoBenedict):
 		else:
 			pass
 			# print("::: No Matching:",self._id)
-		return 
+		return
 			# ex
 
 	def __call__(self,*args, **kwargs):
@@ -1929,7 +1932,7 @@ class xoRedis(xoBenedict):
 		# print("XGetting", key)
 		# print("@@@@@@@@@@@@@@", key in self)
 		if key == "value" or key not in self:
-			
+
 			res = super().__getitem__(key, *args, **kwargs)
 		else:
 			# res = super().__getitem__(key, *args, **kwargs)
@@ -1937,7 +1940,7 @@ class xoRedis(xoBenedict):
 				res = super().__getattribute__(key)
 			except:
 				res = super().__getitem__(key, *args, **kwargs)
-			
+
 		# print("2@@@@@@@@@@@@@@")
 		if isinstance(res,type(self)) or isinstance(res,xoBenedict):
 			# print("When New")
@@ -1973,14 +1976,14 @@ class xoRedis(xoBenedict):
 				# self.value = res
 			# self._setValue(res, skipUpdate = True)
 		print("ffffffffffff",type(res))
-		return res	
 		return res
-	
+		return res
+
 	_lastPub = {}
 
 	def _safeUpdate(self, key, val, *args, **kwargs):
 		pass
-	
+
 	def _normalPublish(self, fullkey, val, *args, **kwargs):
 		r:RedisClient = self._root._redis
 		sender = hash(self._root._redis)
@@ -1992,7 +1995,7 @@ class xoRedis(xoBenedict):
 
 	def _safePublish(self, fullkey, val, *args, **kwargs):
 		return self._normalPublish(fullkey, val, *args, **kwargs)
-	
+
 	def _safePublishx(self, fullkey, val, *args, **kwargs):
 		if fullkey not in self._root._lastPub or val != self._root._lastPub[fullkey]:
 			self._root._lastPub[fullkey] = val
@@ -2022,7 +2025,7 @@ class xoRedis(xoBenedict):
 			if not skip_publish:
 				self._safePublish(self._id+"."+str(key), value)
 		return res
-	
+
 	def __setitemx__(self, key, value, doubleSkip = False, *args, **kwargs):
 		skip = False
 		# print("XSetting", self._id+"."+str(key), "to",type(value),)# value,)
@@ -2092,7 +2095,7 @@ class xoRedis(xoBenedict):
 class Fresh(xoBenedict):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
-	
+
 	def __onchange__(self, fullkey, value, *args, **kwargs):
 		'''This function is called whenever a value of a key changes'''
 		print(f" : : : : {fullkey} CHANGING TO !!!{str(value).upper()}!!!",args, kwargs)
@@ -2122,7 +2125,7 @@ class FreshRedis(xoBenedict):
 				self[key.replace('[','.').replace(']','')] = self.fetchRedis(key=key) if key != 'value' else self.fetchRedis()
 				kcount+=1
 		print(f"::: {kcount} keys have been loaded:", keys)
-		
+
 		return keys
 	def __onchange__(self, fullkey, value, *args, **kwargs):
 		if debug: print(f"!!! : : : : {fullkey} REDIS CHANGING TO {str(value)}",args, kwargs)
@@ -2131,16 +2134,16 @@ class FreshRedis(xoBenedict):
 		if False: #change value if you want before everything
 			# Here you can modify value
 			newVal = "!!!"+str(value).upper()+"!!!"
-		
+
 		newVal = value
-		
+
 		# print("vvvv",type(newVal),value)
 
 		if isinstance(newVal,xoBenedict):
 			#handle dicts
 			if "value" in newVal:
 				newVal = newVal.value
-			
+
 		val = pk.dumps(newVal)
 
 		# val = pk.dumps([sender,val])
@@ -2152,17 +2155,17 @@ class FreshRedis(xoBenedict):
 		if "skip_publish" not in kwargs:# and 'origin' not in kwargs:
 		# if "skip_publish" not in kwargs:
 			# print("PRE PUBLISH")
-			self._safePublish(fullkey, newVal) 
+			self._safePublish(fullkey, newVal)
 		else:
 			pass
 			if debug: print(" : : : SKIPPING PUBLISH")
 
 		# The value you return will be passed on as if it was the original value.
-		return newVal 
-	
+		return newVal
+
 	_host = host
 	_port = port
-	
+
 	_db = 0
 	_rootName = "root"
 	_namespace = "namespace"
@@ -2203,7 +2206,7 @@ class FreshRedis(xoBenedict):
 		#     if item['type'] == 'message':
 		#         print(item['data'])
 		# print("DONE")
-	
+
 	# TODO: Also, implement option to lazy load, (set _needsUpdate or something like so)
 	def _directBind(self, msg, *args, **kwargs):
 		# print("uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
@@ -2236,11 +2239,11 @@ class FreshRedis(xoBenedict):
 
 					# f = self
 					# print("PRE", self._id, "channel:", channel,"SELFID",self._id)
-					
+
 					# f = f[channel]
 					# if channel.startswith(self._id):
 					# 	channel = ".".join(channel.split(".")[1:])
-					
+
 					'''
 					for c in channel.split("."):
 						# print("c:",c)
@@ -2251,7 +2254,7 @@ class FreshRedis(xoBenedict):
 						f = f[c]
 					'''
 					# print("POST",f._id)
-					
+
 					# print("ggggg2")
 
 					# f = xo[msg["channel"].decode().strip("xo/").replace("/", ".")]
@@ -2266,7 +2269,7 @@ class FreshRedis(xoBenedict):
 						if sender == hash(self._root._redis):
 							pass
 							# print("@@@@@@@@@@@@@@@ WORKING! SKIPPING SELF UPDATE", channel, "")
-							return 
+							return
 						# print("try res:",res)
 					except:
 						print(" - - - COULD NOT UNPICKLE", self._id, ":::", res)
@@ -2283,7 +2286,7 @@ class FreshRedis(xoBenedict):
 					print("$$$$$$$$",self._id, self._isRoot)
 
 
-					# target = 
+					# target =
 					# print("@@@@@@@@@@@2 UPDATING ", target._id, target._type)
 					if key == "value" or key not in target or target[key].value != res:
 						print("\n:::UUUUUUUUUUUUUUUUUUU Updating ",target._id+"."+key)
@@ -2303,13 +2306,13 @@ class FreshRedis(xoBenedict):
 							# self.__setitem__(channel, res , skip_change = True)
 							# self.__onchange__(channel, res, skip_publish= True)
 							self.__setitem__(channel, res , skip_publish= True, sender=sender)
-							
-							
+
+
 							pass
 						# else:
 						# 	print()
 						return
-					
+
 					if channel in self:
 						if channel not in self:
 							print("Creating!!!!!!!!!!!! ",channel)
@@ -2326,7 +2329,7 @@ class FreshRedis(xoBenedict):
 						t = self
 						l = len(channel.split("."))
 						co = 0
-						
+
 						# print("ccccc",channel)
 						'''
 						for c in channel.split("."):
@@ -2373,7 +2376,7 @@ class FreshRedis(xoBenedict):
 		self._host = kwargs["host"] if "host" in kwargs else host
 		self._port = kwargs["port"] if "port" in kwargs else port
 		password = kwargs["password"] if "password" in kwargs else ""
-		
+
 		# if self._isRoot: # should work the same
 		if "host" in kwargs: kwargs.pop("host")
 		if "port" in kwargs: kwargs.pop("port")
@@ -2384,14 +2387,14 @@ class FreshRedis(xoBenedict):
 		# if self._isRoot:
 			# print("Host",self._host)
 			# print("Port",self._port)
-			# if password != "":		
+			# if password != "":
 				# print("Pass","************")
 		# self._rootName = "xoRedis"
 		# self._namespace = self._rootName
 		self._rootName = self._type.__name__
 		self._namespace = self._id
 
-		
+
 		# if self._getRoot()._redis:
 		# 	pass
 		# 	print("!!!!!!!!!!!!!")
@@ -2408,7 +2411,7 @@ class FreshRedis(xoBenedict):
 				kwargs["db"] = self._db
 			if password != "":
 				kwargs["password"] = password
-			
+
 			# self._redis = RedisClient(host=self._host, port=self._port, db=self._db)
 			# self._redis = RedisClient(**kwargs)
 			client_address = str(kwargs["host"])+":"+str(kwargs["port"])+"@"+str(kwargs["db"])
@@ -2441,7 +2444,7 @@ class FreshRedis(xoBenedict):
 				found = args[0]["value"]
 			elif "value" in kwargs:
 				found = kwargs["value"]
-			
+
 			if "skip_fetch" in self._params:
 				# if debug or True: print(" YYYYYYYY SKIPPING FETCHING")
 				self._params.pop("skip_fetch")
@@ -2469,15 +2472,15 @@ class FreshRedis(xoBenedict):
 				# self.__setitem__("value", found, skip_change = True)
 				# self.value = found
 				pass
-				
+
 
 			# print("__FETCHING DONE",self._id)
 			# print("__PRINTING DONE_____________")
-		
+
 		self._binded = False
 		self._live = False
 			# self._pubsub = self._getRoot()._redis.pubsub()
-	
+
 	def _checkIfExist_(self, *args,**kwargs):
 		# print(" WILL CHECK IF EXISTS ", self._id, args, kwargs, " ON REDIS")
 		# Check if key exits on redis
@@ -2501,7 +2504,7 @@ class FreshRedis(xoBenedict):
 		else:
 			pass
 			# print("::: No Matching:",self._id)
-		return 
+		return
 			# ex
 
 	def __call__(self,*args, **kwargs):
@@ -2521,7 +2524,7 @@ class FreshRedis(xoBenedict):
 			# return res
 			return self
 		return super().__call__(*args,**kwargs)
-		
+
 	def _normalPublish(self, fullkey, val, *args, **kwargs):
 		r:RedisClient = self._root._redis
 		sender = hash(self._root._redis)
@@ -2551,7 +2554,7 @@ class FreshRedis(xoBenedict):
 		r.delete(idToDelete)
 		# print(" WILL DELETE ", id, args, kwargs, " FROM REDIS")
 		# Delete key on redis
-	
+
 
 
 class xoBackend(FreshRedis): # change or add backends!
@@ -2559,14 +2562,14 @@ class xoBackend(FreshRedis): # change or add backends!
 class xoMetric(xoBackend):
 	# def __init__(self,*args, **kwargs):
 	# 	return super().__init__(*args, **kwargs)
-	
+
 	def __onchange__(self, fullkey, value, *args, **kwargs):
 		# print("PPPPPPPPPPPPPPPPPPPP ",self._id,fullkey,value, args, kwargs)
 		# key = fullkey[len(self._id+"."):]
 		# if self[key].value == value:
 		# 	print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 		# 	return value
-		
+
 		if "sender" not in kwargs: #kwargs include __setitem__ kwargs
 			yourID = hash(self._root._redis)
 			print("$ $ $ $ $ SYNCING METRICS! $ $ $ $ $", fullkey, value, args, kwargs)
@@ -2578,15 +2581,15 @@ class xoMetric(xoBackend):
 
 
 
-# class xoFunctional(xoBenedict):	
+# class xoFunctional(xoBenedict):
 
 #TODO fix functional updating from published sender
-class xoFunctional(FreshRedis):	
+class xoFunctional(FreshRedis):
 	# @classmethod
 	def _wrapper(self, *a,**kw):
 		if self._func == None:
 			return a[0] if len(a)==1 else a
-		
+
 		print(self._func)
 		print("WWWWWWWW",type(self._func),a,kw)
 		res = self._func(*a,**{**kw,**{"_self":self, "_fullkey":self._id if "_fullkey" not in kw else kw.pop("_fullkey")}})
@@ -2598,7 +2601,7 @@ class xoFunctional(FreshRedis):
 	def __init__(self,*args, **kwargs):
 		# if func: self._func = lambda *a,**kw: self._wrapper(func, *a,**kw)
 		# if "function" in kwargs:
-		# 	 = 
+		# 	 =
 
 		F, T =  kwargs.pop("function") if "function" in kwargs else None, kwargs.pop('target') if 'target' in kwargs else None ,
 		super().__init__(*args, **kwargs)
@@ -2642,7 +2645,7 @@ class xoFunctional(FreshRedis):
 				self.__setitem__(self._target, res, skip_change=True)
 				# child =  self.__getitem__(key)
 				# child.__setitem__(self._target, res, skip_target=True, skip_change=True)
-				pass # to stop recursive processing 
+				pass # to stop recursive processing
 		# else:
 		if "skip_target"in kwargs: kwargs["skip_change"] = True
 
@@ -2671,7 +2674,7 @@ def testFunctional():
 import time
 def testing():
 	# bi = xoBenedict()
-	if False:		
+	if False:
 		bi = xoEvents()
 		t = time.time()
 		bi.a.b.c = "yooooooooooooooo'\""
@@ -2681,7 +2684,7 @@ def testing():
 		bi.awesome.nice = "cool"
 		# t = time.time()
 		bi.awesome.nice.set("COOL!!!").abc("ABC@@@@@@@@").a.b.c({"d":{"e":{"f":"FFFFFFFF"}}}).d.e.f.g("FANASTIC!!!!")
-		
+
 		# print(bi)
 		print(":::",time.time()-t)
 		t = time.time()
@@ -2713,7 +2716,7 @@ def testing():
 	# print(bx)
 	# bi2 = xoBenedict(bi.json().replace("\"a\"","\"AAA\""), bi({"aa":1111111,"a":{"b":{"c":"cccccccc"}}}), **{**bi,**{"a":{"b":{"c":{"d":"DDDDDDDDDDDDDDDDDDDDDDDDDDD"}}}}})
 	# print(bi2)
-	
+
 	# bi.a.b.c.set(3).d.set(4).e(5).f.set(6).g("777").set("h",888).set(7777, HH = "1000000000000000").HH.awesome.set(11111)
 
 # from xo import xoRedis
@@ -2741,7 +2744,7 @@ def pnr(p, *a,**kw):
 	print(p,a,kw)
 	if a == () and kw == {}:
 		return p
-	return [p,a,kw]	
+	return [p,a,kw]
 
 
 if __name__ == '__main__':
@@ -2767,7 +2770,7 @@ def msn(self, color=color,c="yellow", *a,**kw):
 up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 
 
-# NEWER 
+# NEWER
 
 # Print with Yellow & Big Letters (colorama + figlet)
 from colorama import Fore as color
@@ -2817,7 +2820,7 @@ up.msn = lambda self, color=color,msn=msn, *a,**kw: msn(self,color,*a,**kw)
 - DONE! - add None support
 - DONE!!! - fix naming issue when new bid and updating
 
-- Done - work with arrays, dicts - i think done, need to tese more thoroghly - 
+- Done - work with arrays, dicts - i think done, need to tese more thoroghly -
 - Done - i think, more testing - nest xo's comfturbly, meaning skip casting if type xo, so redis can be inside xobenedict and vise versa - Currently it inserted good, but str and tree dont render them properly (xo inside branch)
 - fix _cast, update, setitem={} and call({}), Done - items()
 - .a = {}, .a[0] = {}, .a({}) if call then update, if = , set and save as is.
@@ -2837,14 +2840,14 @@ when refactoring add a new branch, and then merge it to the main branch
 and also start putting these todos in atomic sections
 
 !!! atomize gant skill
-1. Task Atomization: read the entire[chunk] todo/vision file, split all of it into atomic missions, do not execute anything, 
+1. Task Atomization: read the entire[chunk] todo/vision file, split all of it into atomic missions, do not execute anything,
 just return a list containing all the missions, with line numbers from source
 2. Task Reordering: orginize the missions into a tree, where each mission is a node, and each node has a list of child nodes
 they should be ordered by the order of execution, not by the order of appearance in the file
 3. Branched Execution: excecute the missions in the tree, in order, in a new git branch with the node's id as name
 
 
-- DONE! write to fabio@benedict 
+- DONE! write to fabio@benedict
 
 pixo - get and publish public xoPackages
 magic = pixo.get("https://github.com/wholesomegarden/xoMagic", "Magic")()
@@ -2857,7 +2860,7 @@ try:
 catch:
 	ai + open router + available in skilllib ? Strong model : cheap model
 	if minor syntax error, just try fix it to enable rerun, if missing -> add, if complex -> use aider
-	prompt user to accept 
+	prompt user to accept
 
 xoStackAiDebugger
 
@@ -2885,7 +2888,7 @@ if we all agree, thats how it'll be
 Take this prompt and modify it until no one objects to it
 filter hater bots excersize, no ddosing the system
 honeypot and map malicious actors
-have it known globally as the `ai ammendments` 
+have it known globally as the `ai ammendments`
 
 
 #Trillion Dollar prompt
@@ -2893,9 +2896,9 @@ help everybody reach their full potential
 
 #T identify the roots of the problem, find the core varialbes of the system that results in this pattern
 # find hidden parts of the system, and make them more visible
-# find hidden patterns, their roots, and make them public 
+# find hidden patterns, their roots, and make them public
 
-@@@ ai-regex (soft/hard) soft - zeroshot with examples, hard - write code to match examples (with regex) and test for 
+@@@ ai-regex (soft/hard) soft - zeroshot with examples, hard - write code to match examples (with regex) and test for
 
 
 
@@ -2922,39 +2925,39 @@ will create an atom based on metric based on js based on branch based on redis b
 							- start by cleaning all the junk comments (after unit tests), then factorize and generalize code, split to different files,
 							- apply an ai loop to run the actual unit tests and try_fix/startover/recover if something breaks
 - IN NEW BRANCH - LEVEL 2 	- Teach ai to write xo code, and have it generate functions to enter the skill_lib
-- IN NEW BRANCH - LEVEL 3 	- 
-- 
-- 
+- IN NEW BRANCH - LEVEL 3 	-
+-
+-
 
 - xoFiles - load folder tree and see files : data_preview txt/img in terminal
 - xoFiles <> xoJS <> xoServer, Live code editing (with hot reload) save file -> see on web instantly, monitor and change, saved
-	-LOP 
-- use xo as syntax to genereate websites and [T] generic object, skill lib, 
+	-LOP
+- use xo as syntax to genereate websites and [T] generic object, skill lib,
 
 
 - make xoBranch work on simple xo, and make new way to load inheritance, to mixmatch faster/better
 
 # For Users
-	xoGMoE, xoMagicLLight, xoAkeyo, xoEmployee, xoDelivery, xoStore 
+	xoGMoE, xoMagicLLight, xoAkeyo, xoEmployee, xoDelivery, xoStore
 
 # Frameworks For Developers
  		xoApps, LOP, xoAI, xoProjects, IFTAI
 Basics: <xo>, <xoBench>, <xoDecorator>, <xoDeque>, <xoBranch> <xoMixo>
-Special: <xoJS>, <xoCLI>, <xoMagicCLI> <xoDot> <xoMagic> <xApps>  
+Special: <xoJS>, <xoCLI>, <xoMagicCLI> <xoDot> <xoMagic> <xApps>
 Advanced [yet easy]: <xoRedis> <xoMicro> <xoServer> <xoAPI> <xoMetric> <xoGraphana> <xoTrace> <xoLOP>
 AI Basics: <xoAtom> <xoConv> <xoMemory+RAG> <xoLib> <xoResearcher> <xoLibAI> <xoAIxoCode>
 AI Advanced: <xoAI> <xoAider> <xoJarvis> <xoEmployee> <xoStore> <xoJam> <xoDJ> <xoMagicLLight>
-Utils: <xoFiles> <xoUsers> <xoAuth> <xoEnc> <xoDB> <xoEvents+watchdog[T,sys,wa,email,3rd,anyXo,]> <xoLinks/xoShorts> <xoThumbs> <xoDesign> <xoGit> 
+Utils: <xoFiles> <xoUsers> <xoAuth> <xoEnc> <xoDB> <xoEvents+watchdog[T,sys,wa,email,3rd,anyXo,]> <xoLinks/xoShorts> <xoThumbs> <xoDesign> <xoGit>
 Hooks: <xoCLI> <xoWeb> <xoWhatsapp> <xoTelegram> <xoDiscord> <xoSlack> <xoZoxide>
-Network: <xoP2P> <xoZMQ> <xoMQTT> <xoFreeDNS> <xoVPCloud/xoDeploy> 
+Network: <xoP2P> <xoZMQ> <xoMQTT> <xoFreeDNS> <xoVPCloud/xoDeploy>
 Magic: <xoGen> <xoMusic> <xoNLP> <xoeMotion-self/media> <xoVision>
-Freedom: <xoFreeAPI> 
+Freedom: <xoFreeAPI>
 
 
 
 #Trillion Dollar prompt
 $$$$$$ <xoOpenSources> -> finds best open source packages, and mixes them to improve all of the non inovative aspects of all current popular services
-find unique ways of futuristic thinking , for which quality of life improves through the new way of oproaching the data, **its all about distilling data into insights and actions** , everything is about how you make connections to what is coming, 
+find unique ways of futuristic thinking , for which quality of life improves through the new way of oproaching the data, **its all about distilling data into insights and actions** , everything is about how you make connections to what is coming,
 
 <xoAGI>
 <xoFutureAI> - oracle that hallucinates the future, with leaps but progressions, and with the ability to predict the future, AND MAP IT! Simulate steps, current world live updating model
@@ -2976,9 +2979,9 @@ Opus Genesis - import openxource.anything() magical psudo code + Global AI Skill
 Opus Dawn - The Golden Plature
 Opus Grand - Dev AI - Let Users bring their apis, sign in with claud/openai/etx, run locally + expose api, or charge for Package Pack + Real Life Apps IFTAI <xoEvents>
 Opus Apex - Akeyo In Real Life
-Opus Zenith - 
+Opus Zenith -
 Opus Magnum - WholesomeGarden
-Opus Crown - ananda 
+Opus Crown - ananda
 Opus Eternal - Peace												For AGI , Life is just an API (#Everything is a function)
 
 User
@@ -3009,7 +3012,7 @@ Do'opus in the day - Solve & Evolve
 Do'magi in the evening - extraodinary & fun / dreamvisions -lucid
 Do'pana in the night - thanks
 
-Self-Optimize: Do Arcitecture at night, plan for tommorow, 
+Self-Optimize: Do Arcitecture at night, plan for tommorow,
 
 
 do kata
@@ -3017,7 +3020,7 @@ do rama
 do pata
 do kami
 do bana
-do shata 
+do shata
 do mana
 do wapa
 do zeta
@@ -3053,14 +3056,14 @@ do hima
 do gita
 do vani
 do ori
-do oppo 
+do oppo
 
 
 The Trick to: write a sentence that each word starts with a to z:
 + The meaning of the sentence should convey or tell a story, or a chunk from it, where the reader has no context, and the in the scene what happens is {scene}
 [A]-complete_word [B]-complete_word ....... Fast consecutive runs, take 1 word, add the next letter, and repeat
-eventually, this could be like an interupt mechanism for ais, where they asyncly talk to eachother, 
-dynamically inserting eachothers words, with time delays and visuals, with a conversation manager that understands when it is appropriate to insert, and theres no cutoff, just rebranching and preloading ['unfinished thoughts'] 
+eventually, this could be like an interupt mechanism for ais, where they asyncly talk to eachother,
+dynamically inserting eachothers words, with time delays and visuals, with a conversation manager that understands when it is appropriate to insert, and theres no cutoff, just rebranching and preloading ['unfinished thoughts']
 
 
 '''
@@ -3075,20 +3078,15 @@ dynamically inserting eachothers words, with time delays and visuals, with a con
 
 '''
 |   Main Chat  |   Utilites and calls
-|              |   
-|     Q:       |   
-|      ....?   |   
+|              |
+|     Q:       |
+|      ....?   |
 |              |  ----> SemanticRounter -> search online				[no call to llm]
 |              |  ----> cheap llm -> uses search function based on Q	[CHEAP LLM CALL]
 |    A:        |  <---- enter results in context + Reply                [call main llm ]
-|      .....!  |   
-|              |   
-|              |   
-|              |   
+|      .....!  |
+|              |
+|              |
+|              |
 
 '''
-
-
-
-
-

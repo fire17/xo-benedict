@@ -1,12 +1,12 @@
 # from zero.xoServer import xoClient
 
-from expando import Expando
+# from expando import Expando
 
 from zeroless import Client, Server
 # from xo.zmq import xoServer
 import killport
 # from xo_zmq import xoClient
-from xoServer import xoClient
+from .xoServer import xoClient
 
 from threading import Thread
 import traceback
@@ -15,17 +15,22 @@ import json
 import dill as pk
 
 
-from xo import xoBenedict# Server, Client, FreshRedis,
+from .xo import xoBenedict# Server, Client, FreshRedis,
 xo = xoBenedict()
 
-public = xo.public
+public:xoBenedict = xo.public
 
 class FreshZero(xoBenedict):
 	_reqServer = None
 	_reqPort = None
 	__root = None
 	# value = None
-	def __init__(self, *a, **kw):
+	request_port=1970
+	publish_port=19701
+	inc = 0
+	def __init__(self, request_port=1970, publish_port=19701, inc=0, *a, **kw):
+		request_port += inc
+		publish_port += inc
 		if FreshZero.__root == None:
 			FreshZero.__root = self
 			print("------------ ONLY ONCE ------------")
@@ -33,8 +38,8 @@ class FreshZero(xoBenedict):
 			self._isRoot = True
 		if self._isRoot:
 			super().__init__(*a, **kw)
-			self._reqPort = reqPort = 1970
-			pubPort = 19701
+			self._reqPort = reqPort = request_port
+			pubPort = publish_port
 			killport.kill_ports(ports=[reqPort, pubPort])
 			time.sleep(.2)
 			print("@@@@@@@@@@@@@@@@@@@@@@@@@@",reqPort,self._reqPort)
@@ -50,13 +55,13 @@ class FreshZero(xoBenedict):
 						print(c, "::: INCOMING:", payload, "type:",type(payload))
 						# print()
 						# print("INDEX:",MicroXO.index)
-						print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+						# print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
 						# f"ECHO! {msg}".encode()
 						# reply(bytes("ECHO! "+str(msg)))
 						# payload = json.loads(payload)
 						payload = pk.loads(payload)
 						target = payload["target"] if "target" in payload else None
-						print("TTTTTTTTTTT:",target)
+						# print("TTTTTTTTTTT:",target)
 						if target in public or target in self:
 							if target in self: owner = self
 							else: owner = public
@@ -113,33 +118,43 @@ class FreshZero(xoBenedict):
 			# time.sleep(1)
 			# pub = Thread(target=pushToSubs, args=[self._id, ])
 			# pub.start()
-		
+
 	def __call__(self,funcOrValue, *args, **kwargs):
 		print("CALLING FRESH SERVER",funcOrValue, args, kwargs)
 		self.__setitem__("value",funcOrValue)
 		return funcOrValue
 
 
+if __name__ == '__main__':
+	freshServer = FreshZero()
+	freshServer.public = public
 
-freshServer = FreshZero()
+	def pnr(v,*a,**kw): print(v,a,kw); return v if a==[] and kw == {} else (v,a,kw)
 
-def pnr(v,*a,**kw): print(v,a,kw); return v if a==[] and kw == {} else (v,a,kw)
+	@freshServer.nice
+	def nice(*a, **kw):
+		'''a nice description'''
+		return pnr("NICE",a,kw)
 
-@freshServer.nice
-def nice(*a, **kw):
-	return pnr("NICE",a,kw)
+	@public.very.nice
+	def very_nice(*a, **kw):
+		'''a very nice description'''
+		return pnr("VERY NICE",a,kw)
 
-hi = lambda *args, **kwargs: ("hi",args,kwargs)
+	hi = lambda *args, **kwargs: ("hi",args,kwargs)
+	get_index_keys = lambda *a,**k: list(public.flatten().keys()) if len(a) == 0 else list(public[a[0]].flatten().keys())
+	get_funcs = lambda *a, **kw: [[k, public[k].value.__doc__] for k in get_index_keys(*a, **kw)]
 
-public.foo.hi = hi
-public.index = lambda *a,**k: list(public.flatten().keys()) if len(a) == 0 else list(public[a[0]].flatten().keys())
-public.new_func = lambda _id, func: public[_id].value.set(func)
+	def hi(*a, **kw):
+		'''hi aaaaaaaaa nice description'''
+		return pnr("hi",a,kw)
+
+	public.foo.hi = hi
+	public.index = get_funcs
+	public.new_func = lambda _id, func: public[_id].value.set(func)
 
 
-print(xo)
-if __name__ == "__main__":
-	while(True):
-		time.sleep(1)
-
-
-
+	print(xo)
+	if __name__ == "__main__":
+		while(True):
+			time.sleep(1)

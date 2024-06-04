@@ -5,10 +5,10 @@ from functools import reduce
 import traceback
 
 import inspect
-from xo import xoBenedict, FreshRedis, debug
+from .xo import xoBenedict, FreshRedis, debug
 import dill as pk
 
-from richtree import treeXoBranch as richtree
+from .richtree import treeXoBranch as richtree
 
 class xoDeque(xoBenedict):
 	_deque = []
@@ -19,7 +19,7 @@ class xoDeque(xoBenedict):
 		elif "value" in kw:
 			self._deque.append(kw["value"])
 		super().__init__(*a, **kw)
-	
+
 	def __onchange__(self,_id, value, *a, **kw):
 		print("ONCHANGE",a,kw)
 		self._deque.append(value)
@@ -133,14 +133,14 @@ class xoBranch(FreshRedis):
 			self._deque.append(a[0])
 		elif "value" in kw:
 			self._deque.append(kw["value"])
-		
+
 		if "yes_fetch" not in kw: kw["no_fetch"] = True
 		skip_reid = False
 		if "_id" in kw:
 			if kw['_id'][-1] == "]":
 				kw['_id'] = "[".join(kw['_id'].split("[")[:-1])+"["+str(self._bid)+"]"
 				self._bid = self._marker
-			else: 
+			else:
 				kw['_id'] = kw['_id']+f"[{self._bid}]"
 			skip_reid = True
 		# print(">>>>>>>>>",_bid)
@@ -158,7 +158,7 @@ class xoBranch(FreshRedis):
 			if self._id[-1] == "]":
 				self._id = "[".join(self._id.split("[")[:-1])+"["+str(self._bid)+"]"
 				self._bid = self._marker
-			else: 
+			else:
 				self._id = self._id+f"[{self._bid}]"
 		if self._parent != None:
 			self._parent._branch.append(self)
@@ -177,7 +177,7 @@ class xoBranch(FreshRedis):
 			# 	self._deque.append(value)
 			if True:
 				if self._parent != None:
-					# print("YYYYYYYYY222222222") 
+					# print("YYYYYYYYY222222222")
 					if False: # This just adds a useless branch
 						newBranch = type(self)(_parent = parent, _id = self._id,_bid=len(self._parent._branch), init =True)
 					if False: #NOT SURE ABOUT THIS ONE,was ok before, but seems ok now off too #XXX
@@ -194,9 +194,9 @@ class xoBranch(FreshRedis):
 		# elif self._branch == []:
 		#     self._branch.append(self)
 		#     self.current()._branch.append(self)
-		
-	
-	
+
+
+
 	#xxxx
 	# def show(self, t="    ", count=0, inLoop=False, ret=False):
 
@@ -255,7 +255,7 @@ class xoBranch(FreshRedis):
 		bid = self._marker
 		for br in self._branch:
 			# print(":::",bid, br, br._marker, brc, bid, current, brc==bid)
-			isCurrent = self._marker == brc and marker 
+			isCurrent = self._marker == brc and marker
 			# bid = br._marker
 			for a in br:
 				mark = "*" if isCurrent else ""
@@ -294,7 +294,7 @@ class xoBranch(FreshRedis):
 		# print("777777",ret,count,retList,res,)
 		# return dict(self)
 
-	
+
 	# def __ifloordiv__(self, other):
 	# 	# change self.on_branch
 	# 	print(self._floor_branch, self._parent._floor_branch)
@@ -303,17 +303,17 @@ class xoBranch(FreshRedis):
 	# 		self._parent._branch[self._parent._floor_branch].__setitem__("value", other, skip_change=True)
 	# 		self._parent._floor_branch = None
 	# 		# return res
-		
+
 	# 	print("??????????22222222")
 	# 	res =  self.__setitem__("value",other, skip_change=True)
 	# 	return res
-	
+
 	@classmethod
 	def _import(cls, d):
 		if isinstance(d, bytes):
 			return cls().import_branches(pk.loads(d))
 		return cls().import_branches(d)
-	
+
 	def pr(d):
 		print(":::",d._id)
 		d = d.flatten()
@@ -329,7 +329,7 @@ class xoBranch(FreshRedis):
 	def left(self,times=1, cycle=False, end = False, start=False):
 		if end or start: return self.moveMarkerToStart()
 		return self.moveLeft(times,cycle)
-	
+
 	def moveRight(self,times=1, cycle = False):
 		print(f"::: Moving Marker +{times} ", end="")
 		if len(self._branch) == 0: return
@@ -341,7 +341,7 @@ class xoBranch(FreshRedis):
 		else:
 			self.moveMarker((self._marker + times)% len(self._branch))
 		return self.current()
-	
+
 	def moveLeft(self,times=1, cycle = False):
 		print(f"::: Moving Marker -{times} ",end="")
 		if len(self._branch) == 0: return
@@ -363,7 +363,7 @@ class xoBranch(FreshRedis):
 
 	def moveMarker(self, newMarker, debug=False):
 		if len(self._branch) == 0:
-			return 
+			return
 		# self._marker = newMarker
 		# print(type(len(self._branch)), type(newMarker), newMarker, self._branch)
 		self._marker = newMarker % len(self._branch)
@@ -376,7 +376,7 @@ class xoBranch(FreshRedis):
 		return self.current()
 
 	def get(self, key, default=None):
-		res = self.__getattr__(key)	
+		res = self.__getattr__(key)
 		if res == None:
 			return default
 		return res
@@ -385,10 +385,10 @@ class xoBranch(FreshRedis):
 		# if "value" in self.current():
 		# 	if hasattr(self.current().value,"__len__"):
 		# 		return len(self.current()["value"])
-			
-		
+
+
 		return len(self._branch) if len(self._branch) > 0 else len(self.keys())
-	
+
 
 
 	def branches(self, fast = False, useSuper = False):
@@ -403,14 +403,14 @@ class xoBranch(FreshRedis):
 			for a in [list(i.items()) for i in (b for b in self._parent._branch)]:
 				pass
 				# ret.append(a)
-				# yield 
+				# yield
 		else:
 		# return self._branch
 			for a in self._branch:
 				ret.append(a)
 				# yield a
 		return ret
-	
+
 
 	def itemsy(self, fast = False, useSuper = False):
 		if useSuper:
@@ -419,13 +419,13 @@ class xoBranch(FreshRedis):
 			return res
 		print(f"iiiii:{self._id}",useSuper)
 		if len(self._branch) > 0:
-			
+
 			# return [item for d in self._branch for item in d.items(useSuper=True)]
 			print("Getting Branches of",self._id)
 			# res = [item for d in self._branch for item in d.items(useSuper=True)]
 			res = [d for d in self._branch]
 			print("GOT:",len(res), res)
-			return res 
+			return res
 			return [item for d in self._branch for item in d.items()]
 		else: #lif self._parent is not None:
 			print("NO BRANCHES",self._id, self._bid, self.value if "value" in self else "- NO VALUE")
@@ -445,11 +445,11 @@ class xoBranch(FreshRedis):
 		# print(combined_list)
 		# final = [sublist.items() for sublist in self._branch for item in sublist]
 		return final
-	
+
 	# def clear(self):
 	# 	[a.clear() for a in self._branch]
 	# 	self._branch.clear()
-	
+
 	def __onchange__(self,_id, value, *a, **kw):
 		# print("ONCHANGE",a,kw)
 		if False: print("::: Creating a new branch for ",self._id,self.place(),":",_id,value, a,kw)
@@ -458,7 +458,7 @@ class xoBranch(FreshRedis):
 		# if "value" not in self.keys() and value != "____init____":
 		# 	self["value"] = "____init____"
 			# self.pop("value")
-		
+
 		parent = self
 		if self._parent != None:
 			parent = self._parent
@@ -505,7 +505,7 @@ class xoBranch(FreshRedis):
 				FreshRedis.__onchange__(self, _id, value, *a, **kw)
 				# since rebranching, run on change only after setting
 		# print("FFFFFFFFF","__onchagne__" in super().__dir__())
-		
+
 		return False
 		if "new" not in kw:
 			return False
@@ -530,8 +530,8 @@ class xoBranch(FreshRedis):
 			return super().__getitem__(item, *args, **kwargs)
 		# if item not in self.current():
 		return self.current().__getitem__(item,*args, **kwargs)
-		
-	
+
+
 	def __getitem__(self, item, *args, **kwargs):
 		if item == "items" or item == "_branch":
 			print("$$$$$$$$$$$$$$$$$$$$iiiii",item)
@@ -584,7 +584,7 @@ class xoBranch(FreshRedis):
 						pass
 					calling_frame = inspect.currentframe().f_back
 					calling_line_number = inspect.getframeinfo(calling_frame).lineno
-					
+
 					if not hasattr (inspect.getframeinfo(calling_frame), "filename"):
 						raise OutOfIndexError(f"Index {item} is out of range for an object with {len(self._branch)} branches\n(line {calling_line_number})")
 					calling_file_name = inspect.getframeinfo(calling_frame).filename
@@ -616,7 +616,7 @@ class xoBranch(FreshRedis):
 				self.current().__setattr__(item, type(self)( _bid = 0 , _id = self._id+"."+item, *args, **kwargs))
 		kwargs["final"] = True
 		return self.current().__getattr__(item,*args, **kwargs)
-	
+
 	def place(self):
 		return f"[{self._marker+1}/{len(self._branch) if len(self._branch)>0 else 1}]"
 
@@ -640,15 +640,15 @@ class xoBranch(FreshRedis):
 			for k,v in br.flatten(sep,rep,current, False, hide_place):
 				final.append((k,v))
 		return {fix(k):v for k,v in final}
-		
-	
+
+
 	def export_branches(self, key = None):
 		return self.flatten()
-	
+
 	def import_branches(self, flat_branches):
 		[self[remove_brackets(k)].set("value",v) for k,v in flat_branches.items()]
 		return self
-	
+
 	def clone(self, *a, **kw):
 		return self(type)().import_branches(self.export_branches())
 
@@ -657,7 +657,7 @@ class xoBranch(FreshRedis):
 		if id(self) != id(self.current()):
 			return self.current().keys()
 		return super().keys()
-	
+
 	def clone(self,*a,**kw):
 		# print("iiiiiiiii",id(self), id(self.current()))
 		if id(self) != id(self.current()):
@@ -688,7 +688,7 @@ class xoBranch(FreshRedis):
 		# 		return  reduce(lambda x, y: x[y], list(item)[:-1], self)._parent._branch[int(list(item)[-1])].__setitem__("value",value, *args, **kwargs)
 		# 	return reduce(lambda x, y: x[y], list(item)[:-1], self).__setitem__(list(item)[-1],value, *args, **kwargs)
 		# print("SSSSSSSS",item, type(value),value, args, kwargs)
-		
+
 		isInt = canBeInt(item)
 		if isInt is not False: item = isInt
 		# print("ISISISISIS", isInt, item, len(self._branch)==0)
@@ -696,11 +696,11 @@ class xoBranch(FreshRedis):
 			self.moveMarker(item)
 			self._floor_branch = item
 			# print("PPPPPPPP",self._id, self._parent)
-			# return self._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs) 
-			# res = self.current()._parent._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs) 
-			# res = self.__setitem__('value',value,skip_change=True, *args, **kwargs)# skip_change="skip_change"in kwargs) 
+			# return self._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs)
+			# res = self.current()._parent._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs)
+			# res = self.__setitem__('value',value,skip_change=True, *args, **kwargs)# skip_change="skip_change"in kwargs)
 			kwargs["bid"] = isInt
-			res = self.__setitem__('value',value,skip_change=True, *args, **kwargs)# skip_change="skip_change"in kwargs) 
+			res = self.__setitem__('value',value,skip_change=True, *args, **kwargs)# skip_change="skip_change"in kwargs)
 			self.end()
 			if hasattr(super(),'__onchange__'):
 				print("HHHHHHHHHHHHHHHHHHH")
@@ -710,10 +710,10 @@ class xoBranch(FreshRedis):
 				# return super().__onchange__(self._updateID(item, self._id), value, *args, **kwargs)
 				return res
 			return res
-			return self.current()._parent._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs) 
+			return self.current()._parent._branch[item].__setitem__('value',value,*args, **kwargs)# skip_change="skip_change"in kwargs)
 		elif self._floor_branch == None:
 			self.end()
-			
+
 		if "current" not in kwargs and "final" not in kwargs:
 			# print("/////////")
 			kwargs["current"] = True
@@ -739,7 +739,7 @@ class xoBranch(FreshRedis):
 			kwargs["final"] = True
 			# self.current()._deque.append(value)
 			# return self.current()._deque
-			
+
 			return self.current().__setitem__(item, value, *args, **kwargs)
 		return super().__setitem__(item, value,*args, **kwargs)
 
@@ -759,7 +759,7 @@ class xoBranch(FreshRedis):
 		else:
 			# if "final" in kw: kw.pop("final")
 			return super().__contains__(item)
-		
+
 
 	def current(self, skip_change = False):
 		if len(self._branch) == 0:
@@ -769,7 +769,7 @@ class xoBranch(FreshRedis):
 				self._marker = len(self._branch) - 1
 			elif self._marker < -1 * len(self._branch):
 				self._marker = 0
-			if not skip_change: 
+			if not skip_change:
 				self._id = "[".join(self._id.split("[")[:-1])+"["+str(self._marker)+"]"
 				self._bid = self._marker
 			return self._branch[self._marker]
@@ -796,7 +796,7 @@ class xoBranch(FreshRedis):
 	def items(self, fast=True):
 		for k in self.keys():
 			yield k, self[k]
-	
+
 	def __str__(self, bid = 0, noplace=False):
 		# print("STR",self._id, len(self._branch))
 		if self._branch == []:
@@ -842,7 +842,7 @@ class xoBranch(FreshRedis):
 	def __strx__(self):
 		if "value" in self and len(self.keys()) == 1:
 			return f'{self.value!r}'
-		
+
 
 		result = {}  # Start with an empty dictionary to store the key-value pairs
 		# Iterate over each key-value pair in self.items()
@@ -876,11 +876,11 @@ class xoBranch(FreshRedis):
 
 		# # Return the JSON-like string
 		# return output
-	
+
 		# final = "{" + ", ".join([f"\"{k}\" {str(v.place() if hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v.__str__()}" for k,v in self.items()]) + "}"
 		final = "{" + ", ".join([f"\"{k}\" {str(v.place() if hasattr(v,'place') and v.place() != '[1/1]' else '').replace('[','(').replace(']',')')}: {v!r}" for k,v in result.items()]) + "}"
 		# for k in self.keys():
-		# 	final += 
+		# 	final +=
 		return final
 		# return "{"+super().__str__()[1:-1]+str(self.place())+"}"
 	def tree(self, noplace=True, ret=False):
@@ -892,7 +892,7 @@ class xoBranch(FreshRedis):
 
 
 if __name__ == "__main__":
-	bx = xoBranch(); 
+	bx = xoBranch();
 	print("::: xoBranch Started")
 	# bx = xoBranch(); xo = bx
 	# bx.a = 1
@@ -902,7 +902,7 @@ if __name__ == "__main__":
 	# input("ENABLE BRAKEPOINT!")
 	# xo.a.b(3333).c(4444)
 	# xo.tree()
-	
+
 	bx.tree()
 	while(True):
 		d = input("Press Enter to display: ")
@@ -938,7 +938,7 @@ if __name__ == "__main__":
 		else:
 			print("::: Showing",bx[d]._id)
 			bx[d].tree()
-	
+
 
 
 # bx = xoBranch()

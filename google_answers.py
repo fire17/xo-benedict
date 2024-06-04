@@ -3,13 +3,13 @@
 
 
 # import regex as re
+from bs4 import BeautifulSoup
 
 strong = False
 if strong:
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options
-    from bs4 import BeautifulSoup
-    options = Options() 
+    options = Options()
     options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
     # user_agent = driver.execute_script("return navigator.userAgent;")
@@ -43,7 +43,7 @@ def find_translation(soup):
     data["original"] = soup.find('pre', {'id': 'tw-source-text'}).text.strip("...")
     data["target-language"] = soup.find('span', {'class': 'target-language'}).text
     data["source-language"] = soup.find('span', {'class': 'source-language'}).text
-    
+
     return data
 
 def find_stock(soup):
@@ -63,7 +63,7 @@ def find_stock(soup):
             data[get_params[0]] = value
             get_params.pop(0)
         if fin: break
-             
+
     data["keep_finding"] = True
     return data
 
@@ -91,14 +91,14 @@ def find_block_component(soup):
         res = res.split("°C °C  °F  °F")[0].split(" ")[0] + "°C / " + res.split("°C °C  °F  °F")[0].split(" ")[1] + "°F,"+ res.split("°C °C  °F  °F")[1]
         res = res.replace("% ","%, ")
     return {"quick_answer":res}
-    
+
 def find_time(soup):
     data = {}
     data["time"] = soup.find('div', {'aria-level': '3', 'role': 'heading'}).text
     fullData = soup.find('div', {'aria-level': '3', 'role': 'heading'}).parent.text.strip().replace("    ","\n").replace("  ","\n").split("\n")[:-1]
     # data["data"] = fullData
-    data["date"] = fullData[1] 
-    data["timezone"] = fullData[2] 
+    data["date"] = fullData[1]
+    data["timezone"] = fullData[2]
     data["title"] = fullData[3]
     data["final_answer"] = data["time"] +" "+ data["date"] +" "+ data["timezone"]
     return data
@@ -106,9 +106,9 @@ def find_time(soup):
 
 # how tall is mount everest <block-component>
 # extra - check dates, pie, more quick questions,
-# what is the size of the earth wa:/description, 
-    
-# implement    
+# what is the size of the earth wa:/description,
+
+# implement
 _, _, find_extra = (lambda soup: None for _ in range(3))
 
 
@@ -127,7 +127,7 @@ def getTitle(soup):
 
 # how tall is mount everest <block-component>
 # extra - check dates, pie, more quick questions,
-# what is the size of the earth wa:/description, 
+# what is the size of the earth wa:/description,
 
 
 
@@ -155,14 +155,14 @@ def find_top(soup, saveFile=False):
         #text = "\n".join(filter(None, (x.strip() for x in parent.stripped_strings)))
         #
         #return text
-    if saveFile:    
+    if saveFile:
         if foundParent:
             # Save the extracted text as 'info_v2.html'
             with open('info_v2.html', 'w', encoding='utf-8') as file:
                 file.write(foundParent.prettify())
             print("Saved 'info_v2.html' with extracted text.")
         else:
-            print("No suitable element found with the specified attributes.")    
+            print("No suitable element found with the specified attributes.")
     data = {}
 
     # Find description - first <div> under file-attachment-contents
@@ -172,7 +172,7 @@ def find_top(soup, saveFile=False):
     print(title)
     print("XXXX")
     data["title"]=title
-    #data['description'] = description 
+    #data['description'] = description
     #desc_div = "\n".join(list(soup.find('div', {'data-md': "50"})[0]).stripped_strings[:-1])
     #print("XXXXXXXXXXXXXXX")
     #print(desc_div)
@@ -206,15 +206,15 @@ def find_top(soup, saveFile=False):
             got_desc = True
     for pack in final[::-1]:
         data[pack[0]]=pack[1]
-    
+
     if "description" not in data and len(multi_lines)>0:
         data["description"] = "\n".join(multi_lines[0].split("\n")[1:])
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%","\n".join(list(data.keys())),"\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-            
+
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%","\n".join(list((data[k] for k in data.keys()))),"\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-    return data        
-    
-    # Find fact rows - <div> elements under <div> elements 
+    return data
+
+    # Find fact rows - <div> elements under <div> elements
     rows = soup.find('file-attachment-contents').find_all('div')
     for row in rows:
         label = row.find('a').text
@@ -224,14 +224,14 @@ def find_top(soup, saveFile=False):
 
     print(data)
     print("DONE DOG/CAT!")
-    
+
     time.sleep(10)
     return foundParent
-    
+
 #extracted_text = find_top()
 
 
-        
+
 
 # find left info
 #url = 'https://www.google.com/search?q=everest&h1=iw'
@@ -280,7 +280,7 @@ def find_left(soup, saveFile=False):
     if result and saveFile:
         info = result
         head = soup.new_tag('head')
-        
+
         info.insert_before(head)
 
         # Create a complete HTML document with html and body tags
@@ -290,17 +290,17 @@ def find_left(soup, saveFile=False):
         with open('info.html', 'w', encoding='utf-8') as file:
             file.write(full_html)
         print("Saved 'info.html' with original CSS styles.")
-        
+
     return result
 
 #info = find_left()
-    
 
- 
+
+
 ############ RAW TEXT
 def find_side(soup):
-    
-        
+
+
     # get all divs with lang
     divs_with_lang = [div for div in soup.find_all('div', {'data-md': "1001"})]
     # Print the list of <div> elements with the "lang" attribute
@@ -351,11 +351,11 @@ def find_side(soup):
             if c==1:
                 # multi_line_text = multi_line_text.split("\n")[:3]
                 final.append(multi_line_text.split("\n")[:3])
-                
+
             if c==2:
                 pass # skipp bullshit
-                
-            
+
+
             if c==3:
                 if len(multi_line_text.split("\n")) == 3:
                     final.append(multi_line_text).split("\n")[1].replace("\xa0"," ")
@@ -380,17 +380,17 @@ def find_side(soup):
                     #final.append([multi_line_text[0],multi_line_text[1]])
                     #final.append(multi_line_text.replace("\n"," "))
 # data = {}
-    
+
     for res in final:
-        print("!!!@@@@@@@@@@@!!!!!!!!!", [res])  
+        print("!!!@@@@@@@@@@@!!!!!!!!!", [res])
     for key in data:
         print(key,"vvvvvvvvv", data[key])
 
     return data
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    
+
     return {"title":final[0][0],"short_desc":final[0][-1],"description":final[1],"data":data}
-    
+
     return final
     return soup.prettify()
     return None
@@ -428,7 +428,7 @@ def find_left_raw(soup):
                     skip-=1
                 parent = parent.parent
 
-        return None 
+        return None
     res = find_last_h2_parent()
     #print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n",res)
     prettified_element=res
@@ -442,7 +442,7 @@ def find_left_raw(soup):
         #for css_style in css_styles:
             #link_tag = soup.new_tag('link', href=css_style, rel='stylesheet')
             #head.append(link_tag)
-            
+
         prettified_element.insert_before(head)
 
         # Create a complete HTML document with html and body tags
@@ -452,21 +452,21 @@ def find_left_raw(soup):
         with open('info.html', 'w', encoding='utf-8') as file:
             file.write(full_html)
         print("Saved 'info.html' with original CSS styles.")
-        
+
         # Trim 'info.html' by removing content below the first element with aria-level
         soup = BeautifulSoup(full_html, 'html.parser')
         first_aria_level_element = soup.find(attrs={'aria-level': True})
         if first_aria_level_element:
             for tag in first_aria_level_element.find_all_next():
                 tag.decompose()
-                
+
 
         # Save the trimmed HTML to 'info.html'
         with open('info.htmlD', 'w', encoding='utf-8') as file:
             file.write(soup.prettify())
         print("Trimmed 'info.html' by removing content below the first element with aria-level.")
 
-            
+
         # Filter out empty or whitespace-only <div> elements
         for div_element in soup.find_all('div'):
             if not div_element.text.strip():
@@ -476,7 +476,7 @@ def find_left_raw(soup):
         with open('info_raw_dataD.html', 'w', encoding='utf-8') as file:
             file.write(soup.prettify())
         print("saved raw content")
-        
+
         # get all divs with lang
         divs_with_lang = [div for div in soup.find_all('div', {'lang': True})]
         # Print the list of <div> elements with the "lang" attribute
@@ -495,11 +495,11 @@ def find_left_raw(soup):
             if c==1:
                 multi_line_text = multi_line_text.split("\n")[:3]
                 final.append(multi_line_text)
-                
+
             if c==2:
                 pass # skipp bullshit
-                
-            
+
+
             if c==3:
                 if len(multi_line_text.split("\n")) == 3:
                     final.append(multi_line_text).split("\n")[1].replace("\xa0"," ")
@@ -524,7 +524,7 @@ def find_left_raw(soup):
                     #final.append([multi_line_text[0],multi_line_text[1]])
                     #final.append(multi_line_text.replace("\n"," "))
         for res in final:
-            print("!!!@@@@@@@@@@@!!!!!!!!!", [res])  
+            print("!!!@@@@@@@@@@@!!!!!!!!!", [res])
         for key in data:
             print(key,"vvvvvvvvv", data[key])
         data["title"] = final[0][0]
@@ -532,9 +532,9 @@ def find_left_raw(soup):
         data["description"] = final[1]
         return data
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        
+
         return {"title":final[0][0],"short_desc":final[0][-1],"description":final[1],"data":data}
-        
+
         return final
         return soup.prettify()
     return None
@@ -588,7 +588,7 @@ def get_weather_forcast(soup, saveFile=True, savePath='weather3.html'):
 		post = ""
 		changeOnce = False
 		for value in aria_label_values:
-        
+
 			if value and "°" in value and len(value.split(" "))>1:
 				#if "°" not in value and not gettingPerc:
 				#	gettingPerc = True
@@ -607,17 +607,17 @@ def get_weather_forcast(soup, saveFile=True, savePath='weather3.html'):
 				ds = d.split(" ")
 				day, hour = " ".join(ds[:-1]),ds[-1]
 				KEY, VAL = val.split(delemeter)[1] if delemeter == "°" else "precipitation",val.split(delemeter)[0]
-				
+
 				if lastDay[0] and day != lastDay[1]:
 					post = " (Next Week)"
 					print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",day+post)
 					#finalDay=day
-                
+
 				week[day+post] = {}
-				if len(week.keys()) <= 10:			
+				if len(week.keys()) <= 10:
 					if day+post not in days:
 						days[day+post] = {}
-						                        
+
 					if hour in days[day+post]:
 						days[day+post][hour][KEY] = VAL
 					else:
@@ -627,32 +627,32 @@ def get_weather_forcast(soup, saveFile=True, savePath='weather3.html'):
 				if not lastDay[0] and len(week.keys())==7:
 					lastDay = True, day
 					print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",days.keys())
-					
-				
+
+
 			elif value and "%" in value and len(value.split(" "))>1:
 				print("SSSSSSSSSS",value)
 				if not changeOnce:
 					changeOnce = True
 					delemeter = "%"
 					lastDay = False, ""
-					week={}		
-					post=''		
-				
+					week={}
+					post=''
+
 				d, val = " ".join(value.split(" ")[1:]).strip(),value.split(" ")[0]
 				ds = d.split(" ")
 				day, hour = " ".join(ds[:-1]),ds[-1]
 				KEY, VAL = "precipitation",val.split(delemeter)[0]
-				
+
 				if lastDay[0] and day != lastDay[1]:
 					post = " (Next Week)"
 					print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",day+post)
 					#finalDay=day
-                
+
 				week[day+post] = {}
-				if len(week.keys()) <= 10:			
+				if len(week.keys()) <= 10:
 					if day+post not in days:
 						days[day+post] = {}
-						                        
+
 					if hour in days[day+post]:
 						days[day+post][hour][KEY] = VAL
 					else:
@@ -662,11 +662,11 @@ def get_weather_forcast(soup, saveFile=True, savePath='weather3.html'):
 				if not lastDay[0] and len(week.keys())==7:
 					lastDay = True, day
 					print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",days.keys())
-				
-				
-				
-				
-				
+
+
+
+
+
 			#print("add wind and rain....")
 		if saveFile:
 			# Save the HTML to a file
@@ -698,7 +698,7 @@ tests = [["what is the height of mount everest",find_side],] # PASS !
 # tests = [["weather in Herzelia",get_weather_forcast]] # PASS !
 # tests = [["time in hawaii",find_top],] # PASS !
 
-def get_soup(q=None, lang='en', url=None, func=None, tests =None, retSuc=True):     
+def get_soup(q=None, lang='en', url=None, func=None, tests =None, retSuc=True):
     if isinstance(url,list):
         for url in urls[::-1]:
             print("::: STARTING TEST :::",url)
@@ -717,7 +717,7 @@ def get_soup(q=None, lang='en', url=None, func=None, tests =None, retSuc=True):
     driver.get(url)
 
     # Wait for page to fully render
-    #driver.implicitly_wait(.8)  
+    #driver.implicitly_wait(.8)
 
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     return soup
@@ -740,14 +740,14 @@ def google_answers(q=None, lang='en', url=None, func=None, tests =None, retSuc=T
     ### GET SOUP (selenium)
 
     # Wait for page to fully render
-    #driver.implicitly_wait(.8)  
+    #driver.implicitly_wait(.8)
     if hasattr(driver, "page_source"):
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
     else:
         res = requests.get(url, headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
-    options = [find_time, get_weather_forcast, find_translation,find_stock, find_side, find_top, find_left_raw, find_block_component, find_left , find_wa_desc, find_extra,  ]    
+    options = [find_time, get_weather_forcast, find_translation,find_stock, find_side, find_top, find_left_raw, find_block_component, find_left , find_wa_desc, find_extra,  ]
     title = getTitle(soup)
     t = 0
     results = []
@@ -775,7 +775,7 @@ def google_answers(q=None, lang='en', url=None, func=None, tests =None, retSuc=T
                     if not skip_ret:
                         return res
                 results.append(res)
-                    
+
             else:
                 print("FAILED",res)
             print("::::::::::::::::::TEST",t)
@@ -784,13 +784,13 @@ def google_answers(q=None, lang='en', url=None, func=None, tests =None, retSuc=T
             print("ERROR",e)
             print("::::::::::::::::::TEST",t)
     return results
-    
+
 
 
 #find_weather, find_time
 
 # find (time)
-#rso first div inside 
+#rso first div inside
 ask = True
 if __name__ == "__main__":
     if ask:
@@ -798,7 +798,7 @@ if __name__ == "__main__":
             q = input("Enter a question: ")
             print("ANSWER:",google_answers(q=q,tests=None))
             print()
-    results = google_answers(tests = tests)        
+    results = google_answers(tests = tests)
     print("##############################", len(results))
     print(results)
     print("##############################")

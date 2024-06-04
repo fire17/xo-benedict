@@ -2,7 +2,7 @@ from colorama import Fore as color
 from rich import print as rprint
 from rich.tree import Tree
 from rich.text import Text
-from emojis import d as emojis
+from .emojis import d as emojis
 COMMON_KEYS_EMOJIS = {
 	"email": "📧",
 	"id": "🆔",
@@ -49,7 +49,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 		# print("TTTTTTTTTTT",type(br))
 		# for key, value in obj.items():
 		items = br.items()
-		if items is not None: 
+		if items is not None:
 			myplace = "("+str(brc+1)+"/"+str(len(obj.branches()))+")"
 			isCurrent = current and myplace == obj.place().replace("[","(").replace("]",")")
 			# key, value = br._id.split(".")[-1]+" "+myplace+" "+obj.place() , br
@@ -73,7 +73,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 					# print("@@@@@@",key,type(value),node_text, )
 					icon = get_emoji(key,value)
 					# branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
-					
+
 					# branch2 = branch.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
 					# branch2 = branch.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
 					# branch2 = branch.add(f"{'[bold magenta]' if 'value' in value and isinstance(value['value'], str) else '[bold yellow]'}{icon if icon else 'open_file_folder'} {node_text}")
@@ -88,7 +88,7 @@ def display_xobranch(obj, _tree=None, current = True, noplace=False, hideTop=Tru
 					# tree.add(node_text)
 		else:
 			print(f"XXXXXXXXXXXX items {br} is None",)
-		brc += 1 
+		brc += 1
 	return _tree
 
 def display_objectOG(obj, _tree=None, hideTop=True):
@@ -106,7 +106,7 @@ def display_objectOG(obj, _tree=None, hideTop=True):
 		# print("TTTTTTTTTTT",type(t))
 		# for key, value in obj.items():
 		items = t.items()
-		if items is not None: 
+		if items is not None:
 			for key, value in items:
 				# print("ttttttttt",key)
 				# print(f"::: K,V {key}:{value}")
@@ -149,7 +149,7 @@ def display_objectx(obj, _tree=None):
 		# for key, value in obj.items():
 		items = t.items()
 		if items is not None:
-			brcount = 0 
+			brcount = 0
 			for br in items:
 				for key, value in br.items():
 					print("ttttttttt",key)
@@ -177,7 +177,7 @@ def display_objectx(obj, _tree=None):
 							icon = get_emoji(key,value)
 							# branch = tree.add(f"[bold magenta]{icon if icon else 'open_file_folder'}: {node_text}")
 							branch = _tree.add(f"{icon if icon else 'open_file_folder'} {node_text}")
-						
+
 						else:
 							print("xxxxWWWWWWW",key,type(value) )
 							node_text = f"{key} : {color.MAGENTA if isinstance(value, str) else color.LIGHTCYAN_EX}{repr(value)}"
@@ -266,7 +266,7 @@ if __name__=="__main__":
 		# bx.end()
 		# bx.show()
 		# bx.pr()
-		
+
 		# assert bx.a.b.c == 22
 		# tree(bx)
 	bx.Users.Yo = ["username",'Created on 18/2/24 21:01']
@@ -316,7 +316,7 @@ obj = {
 
 # invisible table borders, Side | Side , left | right, benedict | xo
 
-#  how to align text inside colums? 
+#  how to align text inside colums?
 # fin tree view
 # add table view
 # add hidden .rich and if exists, overides str it tree or table
